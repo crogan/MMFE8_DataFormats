@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
   sVARv.push_back("Ntrig");
 
   vector<string> sVARx;
-  // sVARx.push_back("MMFE8");
+  sVARx.push_back("MMFE8");
   sVARx.push_back("VMM");
   sVARx.push_back("CKTPrunning");
   sVARx.push_back("PDAC");
@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
             if(strncmp(sVARx[x].c_str(),p,sVARx[x].length())==0){
 	      sscanf(p,(sVARx[x]+"=%d").c_str(), &vVARx[x]);
               num_xadc_matches++;
-	      vFoundv[x] = true;
+	      vFoundx[x] = true;
 	      break;
 	    }
           }
