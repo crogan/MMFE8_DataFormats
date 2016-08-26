@@ -1,29 +1,17 @@
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
+dat2root
+xADCcalib2dat
+PDOcalib2dat
+TDOcalib2dat
+*.DS_Store
+*~
+*.pyc
+*#
+*.d
+.#*
 *.so
-*.dylib
-*.dll
+*.dSYM
+*.dat
+*_.cxx
+*.o
+*.root
 
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
