@@ -15,7 +15,7 @@ CC_FILES := $(wildcard src/*.cc)
 HH_FILES := $(wildcard include/*.hh)
 OBJ_FILES := $(addprefix $(OUTOBJ),$(notdir $(CC_FILES:.cc=.o)))
 
-all: xADCcalib2dat PDOcalib2dat TDOcalib2dat dat2root
+all: xADCcalib2dat PDOcalib2dat TDOcalib2dat dat2root raw2dat raw2evtdat
 
 xADCcalib2dat:  $(SRCDIR)xADCcalib2dat.C $(OBJ_FILES) $(HH_FILES)
 	$(CXX) $(CXXFLAGS) -o xADCcalib2dat $(GLIBS) $ $<
@@ -33,6 +33,14 @@ dat2root:  $(SRCDIR)dat2root.C $(OBJ_FILES) $(HH_FILES)
 	$(CXX) $(CXXFLAGS) -o dat2root $(GLIBS) $ $<
 	touch dat2root
 
+raw2dat:  $(SRCDIR)raw2dat.C $(OBJ_FILES) $(HH_FILES)
+	$(CXX) $(CXXFLAGS) -o raw2dat $(GLIBS) $ $<
+	touch raw2dat
+
+raw2evtdat:  $(SRCDIR)raw2evtdat.C $(OBJ_FILES) $(HH_FILES)
+	$(CXX) $(CXXFLAGS) -o raw2evtdat $(GLIBS) $ $<
+	touch raw2evtdat
+
 $(OUTOBJ)%.o: src/%.cc include/%.hh
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
@@ -43,4 +51,5 @@ clean:
 	rm -f xADCcalib2dat
 	rm -f PDOcalib2dat
 	rm -f TDOcalib2dat
-
+	rm -f raw2dat
+	rm -f raw2evtdat

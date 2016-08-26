@@ -2,6 +2,8 @@ dat2root
 xADCcalib2dat
 PDOcalib2dat
 TDOcalib2dat
+raw2dat
+raw2evtdat
 *.DS_Store
 *~
 *.pyc
