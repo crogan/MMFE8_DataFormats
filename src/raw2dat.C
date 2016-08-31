@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <dirent.h>
 #include <ctime>
+#include <bitset>
 
 // ROOT includes
 #include <TROOT.h>
