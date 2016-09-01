@@ -83,7 +83,7 @@ public:
 	it1 != m_CH_to_index[index0].end(); it1++){
 	int index = it1->second;
 	double m = 2.*m_A2[index]*m_d21[index];
-	double b = m_c0[index] - m*(m_d21[index] + 2.*m_t02[index]);
+	double b = m_c0[index] - m_A2[index]*m_d21[index]*(m_d21[index] + 2.*m_t02[index]);
 
 	fout << std::setw(6) << left << it0->first.first;
 	fout << std::setw(4) << left << it0->first.second;
