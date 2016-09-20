@@ -5,6 +5,7 @@ TDOcalib2dat
 raw2dat
 raw2evtdat
 raw2root
+scint2root
 *.DS_Store
 *~
 *.pyc
