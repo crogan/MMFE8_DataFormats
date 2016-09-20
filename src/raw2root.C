@@ -115,6 +115,8 @@ int main(int argc, char* argv[]) {
   int TDO;
   int PDO;
 
+  int eventnum = -1;
+
   // Loop through the entire input file
   if(ifile.is_open()){
     while(getline(ifile,line)){
@@ -138,6 +140,24 @@ int main(int argc, char* argv[]) {
 	  num_trig = fifotrig & 1048575;
 	  fifotrig = fifotrig >> 20;
 	  bcid_trig = fifotrig & 4095;
+
+	  if(eventnum > 0 && num_trig != eventnum){
+	    tree->Fill();
+	    mm_VMM.clear();
+	    mm_CH.clear();
+	    mm_PDO.clear();
+	    mm_TDO.clear();
+	    mm_BCID.clear();
+	    mm_MMFE8.clear();
+	    mm_FIFOcount.clear();
+	    N_mm = 0;
+	  }
+	  eventnum = num_trig;
+
+	  EventNum = num_trig + pow(2,20)*cycle;
+	  Time_sec = machinetime/billion;
+	  Time_nsec = machinetime%billion;
+	  trig_BCID = bcid_trig;
 	}
 
 	if(itok > 1){
@@ -182,23 +202,9 @@ int main(int argc, char* argv[]) {
 	itok++;
       } // End of line read
 
-      if(mm_VMM.size() > 0){
-	EventNum = num_trig + pow(2,20)*cycle;
-	Time_sec = machinetime/billion;
-	Time_nsec = machinetime%billion;
-	trig_BCID = bcid_trig;
-
+      if(mm_VMM.size() > 0)
 	tree->Fill();
-
-	mm_VMM.clear();
-	mm_CH.clear();
-	mm_PDO.clear();
-	mm_TDO.clear();
-	mm_BCID.clear();
-	mm_MMFE8.clear();
-	mm_FIFOcount.clear();
-	N_mm = 0;
-      }
+      
     }
   }
 
