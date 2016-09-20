@@ -15,7 +15,7 @@ CC_FILES := $(wildcard src/*.cc)
 HH_FILES := $(wildcard include/*.hh)
 OBJ_FILES := $(addprefix $(OUTOBJ),$(notdir $(CC_FILES:.cc=.o)))
 
-all: xADCcalib2dat PDOcalib2dat TDOcalib2dat dat2root raw2dat raw2evtdat raw2root scint2root combine2root
+all: xADCcalib2dat PDOcalib2dat TDOcalib2dat dat2root raw2dat raw2evtdat raw2root scint2root combine2root combine2dat
 
 xADCcalib2dat:  $(SRCDIR)xADCcalib2dat.C $(OBJ_FILES) $(HH_FILES)
 	$(CXX) $(CXXFLAGS) -o xADCcalib2dat $(GLIBS) $ $<
@@ -53,6 +53,10 @@ combine2root:  $(SRCDIR)combine2root.C $(OBJ_FILES) $(HH_FILES)
 	$(CXX) $(CXXFLAGS) -o combine2root $(GLIBS) $ $<
 	touch combine2root
 
+combine2dat:  $(SRCDIR)combine2dat.C $(OBJ_FILES) $(HH_FILES)
+	$(CXX) $(CXXFLAGS) -o combine2dat $(GLIBS) $ $<
+	touch combine2dat
+
 $(OUTOBJ)%.o: src/%.cc include/%.hh
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
@@ -68,3 +72,4 @@ clean:
 	rm -f raw2root
 	rm -f scint2root
 	rm -f combine2root
+	rm -f combine2dat
