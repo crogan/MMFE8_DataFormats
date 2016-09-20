@@ -6,6 +6,8 @@ raw2dat
 raw2evtdat
 raw2root
 scint2root
+combine2root
+combine2dat
 *.DS_Store
 *~
 *.pyc
