@@ -479,6 +479,7 @@ void WriteEvent(){
     *output_file << std::setw(4) << left << mm_MMFE8[i];
     *output_file << std::setw(4) << left << mm_FIFOcount[i] << endl;
   }
+  *output_file << "========= " << endl;
 }
 
 void Close_MM(){
