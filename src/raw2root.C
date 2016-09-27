@@ -201,11 +201,9 @@ int main(int argc, char* argv[]) {
       	p = strtok(NULL, " ");
 	itok++;
       } // End of line read
-
-      if(mm_VMM.size() > 0)
-	tree->Fill();
-      
     }
+    if(mm_VMM.size() > 0)
+      tree->Fill();
   }
 
   ifile.close();
