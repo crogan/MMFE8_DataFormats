@@ -4,6 +4,7 @@
 #include <sstream>
 #include <iomanip>
 #include <stdio.h>
+#include <stdlib.h>
 #include <dirent.h>
 #include <ctime>
 #include <bitset>
@@ -207,7 +208,7 @@ int main(int argc, char* argv[]) {
 
 bool Initialize_MM(const string& filename){
   if(g_mdat){ //.dat format input
-    g_MMstream = new ifstream(filename);
+    g_MMstream = new ifstream(filename.c_str());
     if(!g_MMstream || !g_MMstream->is_open()){
       cout << "Error: unable to open input file " << filename << endl;
       return false;
@@ -241,7 +242,7 @@ bool Initialize_MM(const string& filename){
 
 bool Initialize_SCINT(const string& filename){
   if(g_sdat){ //.dat format input
-    g_SCINTstream = new ifstream(filename);
+    g_SCINTstream = new ifstream(filename.c_str());
     if(!g_SCINTstream){
       cout << "Error: unable to open input file " << filename << endl;
       return false;
