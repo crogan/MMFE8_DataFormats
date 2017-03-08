@@ -9,6 +9,7 @@
 #include <ctime>
 #include <bitset>
 #include <cmath>
+#include <vector>
 
 // ROOT includes
 #include <TROOT.h>
@@ -16,8 +17,11 @@
 #include <TTree.h>
 #include <TChain.h>
 
+
 #include "include/MMdataBase.hh"
 #include "include/SCINTdataBase.hh"
+#include "include/TPdataBase.hh"
+#include "VectorDict.cxx"
 
 using namespace std;
 
@@ -26,6 +30,8 @@ bool g_mdat;
 bool g_mroot;
 bool g_sdat;
 bool g_sroot;
+bool g_tdat;
+bool g_troot;
 int g_offset;
 
 MMdataBase* g_MMbase;
@@ -42,6 +48,13 @@ int g_i_SCINTbase;
 ifstream* g_SCINTstream;
 string g_SCINTline;
 
+TPdataBase* g_TPbase;
+int g_N_TPbase;
+int g_i_TPbase;
+
+ifstream* g_TPstream;
+string g_TPline;
+
 TFile* output_file;
 TTree* output_tree;
 
@@ -53,6 +66,10 @@ int mm_EventNum;
 int mm_Time_sec;
 int mm_Time_nsec;
 int mm_trig_BCID;
+int tp_EventNum;
+int tp_Time_sec;
+int tp_Time_nsec;
+int tp_trig_BCID;
 
 int N_sci;
 vector<int> sci_CH;
@@ -67,12 +84,26 @@ vector<int> mm_BCID;
 vector<int> mm_MMFE8;
 vector<int> mm_FIFOcount;
 
+int N_tp;
+vector<int> tp_VMM;
+vector<int> tp_CH;
+vector<int> tp_MMFE8;
+vector<vector<int>> tp_Group_VMM;
+vector<vector<int>> tp_Group_CH;
+vector<vector<int>> tp_Group_MMFE8;
+
+// Configurable - check these
+vector<int> MMFE8Order = {117,106,119,107,116,111,118,105};
+int tcut = 10.;
+
 bool Initialize_MM(const string& filename);
 bool Initialize_SCINT(const string& filename);
+bool Initialize_TP(const string& filename);
 bool Initialize_output(const string& filename);
 
 bool NextMMEvent();
 bool NextSCINTEvent();
+bool NextTPEvent();
 
 void WriteEvent();
 
@@ -86,16 +117,17 @@ void print_error(){
   cout << ", a scintilator data input ";
   cout << "(.dat with -sdat flag, .roort with -sroot flag)";
   cout << " and an output file name (with -out flag)." << endl;
-  cout << "Example:   ./combine2root -mdat mm_input.dat -sdat scint_input.dat -out output_file.root" << endl;
-  cout << "Example:   ./combine2root -mroot mm_input.root -sdat scint_input.dat -out output_file.root" << endl;
-  cout << "Example:   ./combine2root -mdat mm_input.dat -sroot scint_input.root -out output_file.root" << endl;
-  cout << "Example:   ./combine2root -mroot mm_input.root -sroot scint_input.root -out output_file.root" << endl;
+  cout << "Example:   ./combine2root -mdat mm_input.dat -sdat scint_input.dat [-tdat tp_input.dat] -out output_file.root" << endl;
+  cout << "Example:   ./combine2root -mroot mm_input.root -sdat scint_input.dat [-tdat tp_input.dat] -out output_file.root" << endl;
+  cout << "Example:   ./combine2root -mdat mm_input.dat -sroot scint_input.root [-troot tp_input.root] -out output_file.root" << endl;
+  cout << "Example:   ./combine2root -mroot mm_input.root -sroot scint_input.root [-troot tp_input.root] -out output_file.root" << endl;
   cout << "Example:   ./combine2root -mdat mm_input.dat -sdat scint_input.dat -out output_file.root -offset N" << endl;
 }
 
 int main(int argc, char* argv[]) {
   char inputMMFileName[400];
-  char inputSCINTFileName[400];
+  char inputSCINTFileName[400];  
+  char inputTPFileName[400];
   char outputFileName[400];
 
   if ( argc < 7 ){
@@ -109,6 +141,8 @@ int main(int argc, char* argv[]) {
   g_mroot = false;
   g_sdat  = false;
   g_sroot = false;
+  g_tdat  = false;
+  g_troot = false;
   g_offset = 0;
 
   for (int i=1; i<argc-1;i++){
@@ -120,6 +154,10 @@ int main(int argc, char* argv[]) {
       sscanf(argv[i+1],"%s", inputSCINTFileName);
       g_sdat = true;
     }
+    if(strncmp(argv[i],"-tdat",5)==0){
+      sscanf(argv[i+1],"%s", inputTPFileName);
+      g_tdat = true;
+    }
     if(strncmp(argv[i],"-mroot",6)==0){
       sscanf(argv[i+1],"%s", inputMMFileName);
       g_mroot = true;
@@ -127,6 +165,10 @@ int main(int argc, char* argv[]) {
     if(strncmp(argv[i],"-sroot",6)==0){
       sscanf(argv[i+1],"%s", inputSCINTFileName);
       g_sroot = true;
+    }
+    if(strncmp(argv[i],"-troot",6)==0){
+      sscanf(argv[i+1],"%s", inputTPFileName);
+      g_troot = true;
     }
     if(strncmp(argv[i],"-out",4)==0){
       sscanf(argv[i+1],"%s", outputFileName);
@@ -165,6 +207,8 @@ int main(int argc, char* argv[]) {
   
   cout << "Micromega Input File:  " << inputMMFileName << endl;
   cout << "Scintilator Input File:  " << inputSCINTFileName << endl;
+  if (g_tdat || g_troot)
+    cout << "Trigger Processor Input File:  " << inputTPFileName << endl;
   cout << "Output File: " << outputFileName << endl;
 
   if(!Initialize_output(outputFileName))
@@ -175,7 +219,11 @@ int main(int argc, char* argv[]) {
 
   if(!Initialize_SCINT(inputSCINTFileName))
     return 1;
-  
+
+  if(g_tdat || g_troot)
+    if (!Initialize_TP(inputTPFileName))
+      return 1;
+
   if(!NextMMEvent())
     return 1;
   
@@ -183,22 +231,75 @@ int main(int argc, char* argv[]) {
     return 1;
 
   bool bgood = true;
-  while(bgood){
-    if(sci_EventNum == mm_EventNum + g_offset){
-      WriteEvent();
-      if(!NextMMEvent())
-	bgood = false;
-    } else {
-      if(sci_EventNum > mm_EventNum + g_offset){
-	if(!NextMMEvent())
-	  bgood = false;
-      } else {
-	if(!NextSCINTEvent())
-	  bgood = false;
+  bool tpmatch = false;
+  double tpdiff = -999.;
+  if (!(g_troot || g_tdat)) {
+    while(bgood && !(g_troot || g_tdat)){
+      if(sci_EventNum == mm_EventNum + g_offset){
+        WriteEvent();
+        if(!NextMMEvent())
+  	     bgood = false;
+      } 
+      else {
+        if(sci_EventNum > mm_EventNum + g_offset){
+  	     if(!NextMMEvent())
+  	     bgood = false;
+        } 
+        else {
+  	     if(!NextSCINTEvent())
+  	       bgood = false;
+        }
       }
     }
   }
-  
+  else {
+    while(bgood){
+      tpdiff = ((tp_Time_sec*pow(10,9)+tp_Time_nsec)-(sci_Time_sec*pow(10,9) + sci_Time_nsec))/pow(10,8);
+      if (tpdiff < tcut && tpdiff>0.)
+        tpmatch = true;
+      else
+        tpmatch = false;
+      //      cout << "MM " << mm_EventNum + g_offset << " SC " << sci_EventNum << " TP " << tp_EventNum << " tpdiff " << tpdiff << endl;
+      if(sci_EventNum == mm_EventNum + g_offset){ 
+        if (tpmatch) {
+	  //cout << "Found match! " << endl;
+          tp_Group_VMM.push_back(tp_VMM);
+          tp_Group_CH.push_back(tp_CH);
+          tp_Group_MMFE8.push_back(tp_MMFE8);
+          if(!NextTPEvent())
+            bgood = false;
+        }
+        else if (tpdiff < 0.){
+          //cout << "Try again! " << endl;
+           if(!NextTPEvent())
+            bgood = false;    
+        }   
+        else {
+          //cout << "Move on..." << endl;
+          WriteEvent();
+          tp_Group_VMM.clear();
+          tp_Group_CH.clear();
+          tp_Group_MMFE8.clear();
+          if(!NextMMEvent())
+           bgood = false;
+        }    
+      }
+      else {
+        if((sci_EventNum > mm_EventNum + g_offset) && tpmatch){
+           if(!NextMMEvent())
+           bgood = false;
+        } 
+        else if ((sci_EventNum > mm_EventNum + g_offset) && !tpmatch) {
+          if(!NextTPEvent())
+            bgood = false;
+        }
+        else {
+           if(!NextSCINTEvent())
+             bgood = false;
+        }
+      }
+    }
+  }
   Close_MM();
   Close_SCINT();
   Write_output();
@@ -268,6 +369,34 @@ bool Initialize_SCINT(const string& filename){
   return true;
 }
 
+bool Initialize_TP(const string& filename){
+  if(g_tdat){ //.dat format input
+    g_TPstream = new ifstream(filename.c_str());
+    if(!g_TPstream){
+      cout << "Error: unable to open input file " << filename << endl;
+      return false;
+    }
+  }
+  if(g_troot){ //.root format input
+    TFile* f = new TFile(filename.c_str(), "READ");
+    if(!f){
+      cout << "Error: unable to open input file " << filename << endl;
+      return false;
+    }
+    TTree* T = (TTree*) f->Get("TP_data");
+    if(!T){
+      cout << "Error: cannot find tree TP_data in " << filename << endl;
+      return false;
+    }
+    g_TPbase = (TPdataBase*) new TPdataBase(T);
+    g_N_TPbase = T->GetEntries();
+    g_i_TPbase = -1;
+    g_TPbase->EventNum = 0;
+  }
+  
+  return true;
+}
+
 bool Initialize_output(const string& filename){
   output_file = (TFile*) new TFile(filename.c_str(), "RECREATE");
   output_file->cd();
@@ -295,6 +424,12 @@ bool Initialize_output(const string& filename){
   output_tree->Branch("mm_MMFE8", &mm_MMFE8);
   output_tree->Branch("mm_FIFOcount", &mm_FIFOcount);
 
+  if (g_tdat || g_troot) {
+    output_tree->Branch("N_tp", &N_tp);
+    output_tree->Branch("tp_Group_VMM", &tp_Group_VMM);
+    output_tree->Branch("tp_Group_CH", &tp_Group_CH);
+    output_tree->Branch("tp_Group_MMFE8", &tp_Group_MMFE8);
+  }
   return true;
 }
 
@@ -466,6 +601,71 @@ bool NextSCINTEvent(){
   return true;
 }
 
+bool NextTPEvent(){
+  if(g_tdat){
+    if(!g_TPstream || !g_TPstream->is_open())
+      return false;
+    int p;
+    if(!getline(*g_TPstream, g_TPline))
+      return false;
+    string dum;
+    std::stringstream sline;
+    std::stringstream sline2;
+    sline << g_TPline;
+    sline >> dum;
+    sline >> tp_EventNum;
+    sline >> dum;
+    sline >> tp_Time_sec;
+    sline >> dum;
+    sline >> tp_Time_nsec;
+
+    tp_VMM.clear();
+    tp_CH.clear();
+    tp_MMFE8.clear();
+
+    if (getline(*g_TPstream, g_TPline)){
+      sline2 << g_TPline;
+      sline2 >> dum;
+    }      
+
+    for(int i = 0; i < 8; i++){
+      if(getline(*g_TPstream, g_TPline)){
+        std::stringstream sline3;
+        sline3.str("");
+        sline3 << g_TPline;
+        sline3 >> p;
+        tp_VMM.push_back(p);
+        sline3 >> p;
+        tp_CH.push_back(p);
+        tp_MMFE8.push_back(MMFE8Order[i]);
+      }
+    }
+  }
+
+  if(g_troot){
+    g_i_TPbase++;
+    if(g_i_TPbase >= g_N_TPbase)
+      return false;
+    g_TPbase->GetEntry(g_i_TPbase);
+    tp_EventNum = g_TPbase->EventNum;
+    tp_Time_sec = g_TPbase->Time_sec;
+    tp_Time_nsec = g_TPbase->Time_nsec;
+
+    tp_VMM.clear();
+    tp_CH.clear();
+    tp_MMFE8.clear();
+
+    for(int i = 0; i < 8; i++){
+      tp_VMM.push_back(g_TPbase->tp_VMM->at(i));
+      tp_CH.push_back(g_TPbase->tp_CH->at(i));
+      tp_MMFE8.push_back(g_TPbase->tp_MMFE8->at(i));
+    }
+  }
+
+  return true;
+}
+
+
 void WriteEvent(){
   if(output_tree)
     output_tree->Fill();
@@ -498,5 +698,20 @@ void Close_SCINT(){
     g_MMbase = nullptr;
     g_N_MMbase = 0;
     g_i_MMbase = -1;
+  }
+}
+
+void Close_TP(){
+  if(g_tdat){
+    if(g_TPstream)
+      g_TPstream->close();
+    g_TPstream = nullptr;
+  }
+  if(g_troot){
+    if(g_TPbase)
+      delete g_TPbase;
+    g_TPbase = nullptr;
+    g_N_TPbase = 0;
+    g_i_TPbase = -1;
   }
 }

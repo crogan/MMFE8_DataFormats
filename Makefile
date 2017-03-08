@@ -14,8 +14,13 @@ OUTOBJ	         = ./obj/
 CC_FILES := $(wildcard src/*.cc)
 HH_FILES := $(wildcard include/*.hh)
 OBJ_FILES := $(addprefix $(OUTOBJ),$(notdir $(CC_FILES:.cc=.o)))
+DICT_FILES := $(wildcard include/*.pcm)
 
-all: xADCcalib2dat PDOcalib2dat TDOcalib2dat dat2root raw2dat raw2evtdat raw2root scint2root combine2root combine2dat
+all: VectorDict.cxx xADCcalib2dat PDOcalib2dat TDOcalib2dat dat2root raw2dat raw2evtdat raw2root scint2root tp2root combine2root combine2dat
+
+VectorDict.cxx: $(INCLUDEDIR)VectorDict.hh
+	rootcint -f VectorDict.cxx -c $(CXXFLAGS) -p $ $<
+	touch VectorDict.cxx
 
 xADCcalib2dat:  $(SRCDIR)xADCcalib2dat.C $(OBJ_FILES) $(HH_FILES)
 	$(CXX) $(CXXFLAGS) -o xADCcalib2dat $(GLIBS) $ $<
@@ -49,7 +54,11 @@ scint2root:  $(SRCDIR)scint2root.C $(OBJ_FILES) $(HH_FILES)
 	$(CXX) $(CXXFLAGS) -o scint2root $(GLIBS) $ $<
 	touch scint2root
 
-combine2root:  $(SRCDIR)combine2root.C $(OBJ_FILES) $(HH_FILES)
+tp2root:  $(SRCDIR)tp2root.C $(OBJ_FILES) $(HH_FILES)
+	$(CXX) $(CXXFLAGS) -o tp2root $(GLIBS) $ $<
+	touch tp2root
+
+combine2root:  $(SRCDIR)combine2root.C $(OBJ_FILES) $(HH_FILES) $(DICT_FILES)
 	$(CXX) $(CXXFLAGS) -o combine2root $(GLIBS) $ $<
 	touch combine2root
 
@@ -63,6 +72,8 @@ $(OUTOBJ)%.o: src/%.cc include/%.hh
 clean:
 	rm -f $(OUTOBJ)*.o
 	rm -rf *.dSYM
+	rm -f VectorDict.cxx
+	rm -f VectorDict_rdict.pcm
 	rm -f dat2root
 	rm -f xADCcalib2dat
 	rm -f PDOcalib2dat
