@@ -99,6 +99,7 @@ int main(int argc, char* argv[]) {
       if(getline(ifile ,line)) {
         sline2 << line;
         sline2 >> dum;
+        sline2 >> dum;
         sline2 >> BCID;
         }
       for(int i = 0; i < Nb; i++){
