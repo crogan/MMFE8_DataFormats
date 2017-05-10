@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
   int BCID;
   float mxlocal;
 
-  vector<int> boardOrder = {2,4,3,5,1,0,6,7};
+  vector<int> boardOrder = {5, 3, 4, 2, 7, 6, 1, 0};
   vector<int> MMFE8Order = {118,116,102,119,106,107,117,105};
 
   vector<int> tpfit_VMM;
@@ -112,7 +112,7 @@ int main(int argc, char* argv[]) {
 	      tpfit_VMM.push_back(p);
 	      sline3 >> p;
 	      tpfit_CH.push_back(p);
-        tpfit_MMFE8.push_back(MMFE8Order[i]);
+        tpfit_MMFE8.push_back(MMFE8Order[boardOrder[i]]);
 	      }
       }
       if(getline(ifile ,line)) {
