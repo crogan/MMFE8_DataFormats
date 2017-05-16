@@ -91,7 +91,7 @@ def main(argv):
         while True:
             tpfit_tree.GetEntry(j)
 
-            if (j > nfit):
+            if (j == nfit):
                 break
 
             time = tpfit_tree.Time_sec + tpfit_tree.Time_nsec/pow(10.,9)
@@ -136,14 +136,14 @@ def main(argv):
                     t_tpfit_MMFE8.clear()
                     t_tpfit_BCID.clear()
             j += 1
-        if (j == nfit+1):
+        if (j == nfit):
             continue
         progress(tm.time()-tstart, i, ngbt)
     print "\nChecking for missed fit packets"
     nmiss = 0
     tstart = tm.time()
     setmatched = set(matchedFitEvents)
-    setall = set(range(1,nfit))
+    setall = set(range(nfit))
     missing = setall.difference(setmatched)
     #print "Missing events: ", missing
     # loop through missing events to add them with BCID -1
