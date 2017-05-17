@@ -1,3 +1,11 @@
+"""
+combineTPMM.py -- a script to combine MM and TP ntuples.
+                  The MM input can be MM-only or MM+scintillator.
+                  The TP input can be fit-only or fit+GBT.
+
+Run like:
+> python combineTPMM.py --mm mm.root --tp tp.root --out comb.root
+"""
 import argparse
 import array
 import copy
@@ -5,31 +13,44 @@ import sys
 import time
 import ROOT
 
-ints = ["tp_n"]
+ints    = ["tp_n"]
 vecints = ["tp_EventNum", "tp_cntr", "tp_Time_sec", "tp_Time_nsec", "tp_BCID", "tp_hit_n"]
 vecdubs = ["tp_mxlocal"]
-vecvecs = ["tp_hit_MMFE8", "tp_hit_VMM", "tp_hit_CH"]
+vecvecs = ["tp_hit_MMFE8", "tp_hit_VMM", "tp_hit_CH", "tp_hit_BCID"]
 
 def main():
 
     ops = options()
 
-    fMM = ops.mm or fatal("Please provide a --mm input ROOT file")
+    # gather ye inputs
     fTP = ops.tp or fatal("Please provide a --tp input ROOT file")
+    fMM = ops.mm or fatal("Please provide a --mm input ROOT file")
 
-    fMM = ROOT.TFile.Open(fMM)
     fTP = ROOT.TFile.Open(fTP)
+    fMM = ROOT.TFile.Open(fMM)
 
-    trMM = fMM.Get("MM_data")
-    trTP = fTP.Get("TPfit_data")
+    trTP = fTP.Get("TPfit_data") or fTP.Get("TPcomb_data")
+    trMM = fMM.Get("MM_data")    or fMM.Get("COMB_data")
 
-    entsMM = trMM.GetEntries() if not ops.max else min(int(ops.max), trMM.GetEntries())
+    if not trTP: fatal("Couldnt find TTree (TPfit_data or TPcomb_data) within %s" % (ops.tp))
+    if not trMM: fatal("Couldnt find TTree (MM_data or COMB_data) within %s"      % (ops.mm))
+
+    # assess what inputs were dealing with
+    combMM = "comb" in trMM.GetName().lower()
+    combTP = "comb" in trTP.GetName().lower()
+    if not combTP:
+        vecvecs.remove("tp_hit_BCID")
+
     entsTP = trTP.GetEntries()
+    entsMM = trMM.GetEntries() if not ops.max else min(int(ops.max), trMM.GetEntries())
 
     print
     print "input MM  : %s" % (fMM.GetName())
     print "input TP  : %s" % (fTP.GetName())
     print "output    : %s" % (ops.out)
+    print
+    print "MM: MM+Scint." if combMM else "MM: MM-only"
+    print "TP: Fit+GBT"   if combTP else "TP: Fit-only"
     print
     print "MM events : %i" % (entsMM)
     print "TP events : %i" % (entsTP)
@@ -44,6 +65,7 @@ def main():
     nMMtrigs = 0
 
     # configure output
+    # add branches to our cloned tree
     outfile = ROOT.TFile(ops.out, "recreate")
     clonetree = trMM.CloneTree(0)
     treedict = {}
@@ -71,7 +93,7 @@ def main():
         reset(treedict)
 
         # gather time and hits
-        tMM = trMM.Time_sec + trMM.Time_nsec/pow(10, 9.0)
+        tMM = (trMM.mm_Time_sec + trMM.mm_Time_nsec/pow(10, 9.0)) if combMM else (trMM.Time_sec + trMM.Time_nsec/pow(10, 9.0))
         hits_mm = zip(list(trMM.mm_MMFE8), list(trMM.mm_VMM), list(trMM.mm_CH))
         verbose("Event %i :: %i hits" % (entMM, len(hits_mm)))
 
@@ -127,16 +149,19 @@ def main():
                 entTP_prev = entTP
                 nMMtrigs += 1
                 treedict["tp_n"][0] += 1
-                treedict["tp_EventNum"] .push_back(trTP.EventNum)
-                treedict["tp_cntr"]     .push_back(trTP.cntr)
-                treedict["tp_Time_sec"] .push_back(trTP.Time_sec)
-                treedict["tp_Time_nsec"].push_back(trTP.Time_nsec)
-                treedict["tp_BCID"]     .push_back(trTP.BCID)
-                treedict["tp_mxlocal"]  .push_back(trTP.mxlocal)
-                treedict["tp_hit_n"]    .push_back(trTP.tpfit_n)
-                treedict["tp_hit_MMFE8"].push_back(copy.deepcopy(trTP.tpfit_MMFE8))
-                treedict["tp_hit_VMM"]  .push_back(copy.deepcopy(trTP.tpfit_VMM))
-                treedict["tp_hit_CH"]   .push_back(copy.deepcopy(trTP.tpfit_CH))
+                treedict["tp_EventNum"]    .push_back(trTP.EventNum)
+                treedict["tp_cntr"]        .push_back(trTP.cntr)
+                treedict["tp_Time_sec"]    .push_back(trTP.Time_sec)
+                treedict["tp_Time_nsec"]   .push_back(trTP.Time_nsec)
+                treedict["tp_BCID"]        .push_back(trTP.BCID)
+                treedict["tp_mxlocal"]     .push_back(trTP.mxlocal)
+                treedict["tp_hit_n"]       .push_back(trTP.tpfit_n)
+                treedict["tp_hit_MMFE8"]   .push_back(copy.deepcopy(trTP.tpfit_MMFE8))
+                treedict["tp_hit_VMM"]     .push_back(copy.deepcopy(trTP.tpfit_VMM))
+                treedict["tp_hit_CH"]      .push_back(copy.deepcopy(trTP.tpfit_CH))
+                if combTP:
+                    treedict["tp_hit_BCID"].push_back(copy.deepcopy(trTP.tpfit_BCID))
+
             elif ntr == 0:
                 verbose(color.GRAY + debug + " Found unrelated trigger.")
                 entTP += 1
