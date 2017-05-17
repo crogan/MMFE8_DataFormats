@@ -63,6 +63,7 @@ int main(int argc, char* argv[]) {
   vector<int> tpfit_VMM;
   vector<int> tpfit_CH;
   vector<int> tpfit_MMFE8;
+  int tpfit_n;
 
   tree->Branch("EventNum",  &EventNum);
   tree->Branch("cntr",  &cntr);
@@ -73,8 +74,10 @@ int main(int argc, char* argv[]) {
   tree->Branch("tpfit_VMM", &tpfit_VMM);
   tree->Branch("tpfit_CH", &tpfit_CH);
   tree->Branch("tpfit_MMFE8", &tpfit_MMFE8);
+  tree->Branch("tpfit_n", &tpfit_n);
 
   int p;
+  int p2;
   
   // Loop through the entire input file
   if(ifile.is_open()){
@@ -102,17 +105,21 @@ int main(int argc, char* argv[]) {
         sline2 >> dum;
         sline2 >> BCID;
         }
+      tpfit_n = 0;
       for(int i = 0; i < Nb; i++){
 	      if(getline(ifile,line)){
-        std::stringstream sline3;
-        sline3.str("");
-	      sline3 << line;
-        dum = sline3.str();
-        sline3 >> p;
-	      tpfit_VMM.push_back(p);
-	      sline3 >> p;
-	      tpfit_CH.push_back(p);
-        tpfit_MMFE8.push_back(MMFE8Order[boardOrder[i]]);
+                std::stringstream sline3;
+                sline3.str("");
+                sline3 << line;
+                dum = sline3.str();
+                sline3 >> p;
+                sline3 >> p2;
+                if (p != 0 || p2 != 0) {
+                  tpfit_VMM.push_back(p);
+                  tpfit_CH.push_back(p2);
+                  tpfit_MMFE8.push_back(MMFE8Order[boardOrder[i]]);
+                  tpfit_n++;
+                }
 	      }
       }
       if(getline(ifile ,line)) {
