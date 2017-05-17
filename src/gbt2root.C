@@ -8,6 +8,7 @@
 #include <ctime>
 #include <bitset>
 #include <cmath>
+#include <string>
 
 // ROOT includes
 #include <TROOT.h>
@@ -95,15 +96,14 @@ int main(int argc, char* argv[]) {
   int ib;
   bool Aflag = false;
   
+  std::stringstream sline;
+  std::stringstream sline2;
+  std::stringstream sline3;
   // Loop through the entire input file
   if(ifile.is_open()){
     while(getline(ifile,line)){
       string dum;
-      std::stringstream sline;
-      std::stringstream sline2;
-      std::stringstream sline3;
-      std::stringstream sline4;
-      std::stringstream sline5;
+      sline.clear();
       sline << line;
       sline >> dum;
       sline >> EventNum;
@@ -145,61 +145,27 @@ int main(int argc, char* argv[]) {
         }
         for (int j = 0; j < 4; j++){
           sline3.clear();
-          sline4.clear();
           if(getline(ifile,line)){
             sline3 << line;
             sline3 >> ib;
             if (Aflag)
               ib = ib + 4;
-            if (debug)
-              cout << "ib: " << ib << " strbuflen: " << sline3.rdbuf()->in_avail() << endl;
-            if ((sline3.rdbuf()->in_avail() == 5) || (sline3.rdbuf()->in_avail() == 4)) {
-              // single hit on board
-              if (getline(sline3,line,',')){
-                sline5 << line;
-                sline5 >> vmm;
-                if (debug)
-                  cout << "vmm " << vmm << endl;
-                gbt_VMM.push_back(vmm);
-              }
-              sline5.clear();
-              if (getline(sline3,line,',')){
-                sline5 << line;
-                sline5 >> ch;
-                if (debug)
-                  cout << "channel " << ch << endl;
-                gbt_CH.push_back(ch);
-                gbt_MMFE8.push_back(MMFE8Order[ib]);
-              }
-              sline5.clear();
+            if (debug){
+              cout << "line: " << line << endl;
+              cout << "ib: " << ib << endl;
             }
-            else if (sline3.rdbuf()->in_avail() > 5){
-              if (debug)
-                cout << "more than 1 hit" << endl;
-              while (getline(sline3,line, ' ')){
-                sline4.clear();
-                sline5.clear();
-                sline4 << line;
-                if (debug)
-                  cout << "line: " << line << endl;
-                if (getline(sline4,line,',')){
-                  sline5 << line;
-                  sline5 >> vmm;
-                  if (debug)
-                    cout << "vmm " << vmm << endl;
-                  gbt_VMM.push_back(vmm);
-                }
-                sline5.clear();
-                if (getline(sline4,line,',')){
-                  sline5 << line;
-                  sline5 >> ch;
-                  if (debug)
-                    cout << "channel " << ch << endl;
-                  gbt_CH.push_back(ch);
-                  gbt_MMFE8.push_back(MMFE8Order[ib]);
-                }
-                sline5.clear();
+            string hitvmm;
+            while (sline3 >> hitvmm) {
+              if (debug){
+                cout << "hitvmm " << hitvmm << endl;
               }
+              int vmm, ch;
+              vmm = atoi(hitvmm.substr(0,hitvmm.find(",")).c_str());
+              ch = atoi(hitvmm.substr(hitvmm.find(",")+1).c_str());
+              gbt_VMM.push_back(vmm);
+              gbt_CH.push_back(ch);
+              gbt_MMFE8.push_back(MMFE8Order[ib]);
+
             }
           }
         }
@@ -208,6 +174,9 @@ int main(int argc, char* argv[]) {
             gbt_BCID.push_back(TPbcid);
       }
       tree->Fill();
+      sline.clear();
+      sline2.clear();
+      sline3.clear();
     }
   }
 
