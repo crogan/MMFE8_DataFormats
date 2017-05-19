@@ -73,7 +73,10 @@ def main(argv):
     matchedFitEvents = []
     i = 0
     while gbt_tree.GetEntry(i):
-        i += 1
+        # debug
+        #if gbt_tree.EventNum < 192254:
+        #    i += 1
+        #    continue
         time = gbt_tree.Time_sec + gbt_tree.Time_nsec/pow(10.,9)
 
         gbtpk = GBTPacket(time)
@@ -90,6 +93,11 @@ def main(argv):
         j = currifitpk
         while True:
             tpfit_tree.GetEntry(j)
+            #print "TP Event: ",tpfit_tree.EventNum, " GBT event: ",gbt_tree.EventNum
+
+            #if tpfit_tree.EventNum < 786418:
+            #    j += 1
+            #    continue
 
             if (j == nfit):
                 break
@@ -109,20 +117,21 @@ def main(argv):
 
             for k in range(len(mmfes)):
                 fitpk.add(mmfes[k],vmms[k],chs[k])
-            if (fitpk.time - gbtpk.time) > 0.1: #we've gone too far
+            if (fitpk.time - gbtpk.time) > 0.2: #we've gone too far
+            #    print "Error!:, TP Event: ",fitpk.nevent, " GBT event: ",gbt_tree.EventNum
                 break
-            if abs(fitpk.time - gbtpk.time) < 0.1:
+            nmatch = 0
+            if abs(fitpk.time - gbtpk.time) < 0.2:
                 if fitpk.bcid in gbtpk.bcids:
-                    matchedFitEvents.append(j)
                     for (mmfe, vmm, ch, bcid) in gbtpk.hits:
                         for (tpmmfe, tpvmm, tpch) in fitpk.hits:
                             if (mmfe, vmm, ch) == (tpmmfe,tpvmm,tpch):
+                                nmatch += 1
                                 fitpk.addmod(tpmmfe, tpvmm, tpch, bcid)
                                 t_tpfit_VMM.push_back(tpvmm)
                                 t_tpfit_CH.push_back(tpch)
                                 t_tpfit_MMFE8.push_back(tpmmfe)
                                 t_tpfit_BCID.push_back(bcid)
-                    currifitpk = j+1
                     t_mxlocal[0] = fitpk.mxl
                     t_bcid[0] = fitpk.bcid
                     t_tpfit_n[0] = fitpk.nhit
@@ -130,7 +139,10 @@ def main(argv):
                     t_eventnum[0] = fitpk.nevent
                     t_timesec[0] = fitpk.timesec
                     t_timensec[0] = fitpk.timensec
-                    t.Fill()
+                    if (nmatch == fitpk.nhit):
+                        currifitpk = j+1
+                        t.Fill()
+                        matchedFitEvents.append(j)
                     t_tpfit_VMM.clear()
                     t_tpfit_CH.clear()
                     t_tpfit_MMFE8.clear()
@@ -138,6 +150,7 @@ def main(argv):
             j += 1
         if (j == nfit):
             continue
+        i += 1
         progress(tm.time()-tstart, i, ngbt)
     print "\nChecking for missed fit packets"
     nmiss = 0
@@ -145,8 +158,11 @@ def main(argv):
     setmatched = set(matchedFitEvents)
     setall = set(range(nfit))
     missing = setall.difference(setmatched)
-    #print "Missing events: ", missing
+    print "First twenty missing events (entry num): ", list(missing)[::-1][0:20]
     # loop through missing events to add them with BCID -1
+
+    errfile = open("combineTPGBTerr.txt", 'w')
+    
     for k in missing:
         nmiss += 1
         tpfit_tree.GetEntry(k)
@@ -156,6 +172,9 @@ def main(argv):
         nevent = tpfit_tree.EventNum
         nhit = tpfit_tree.tpfit_n
         cntr = tpfit_tree.cntr
+
+        err = (nevent, time)
+        errfile.write(str(err) + "\n")
         
         fitpk = FitPacket(nevent,time,bcid,mxloc,nhit,cntr)
         
@@ -183,9 +202,9 @@ def main(argv):
         t_tpfit_CH.clear()
         t_tpfit_MMFE8.clear()
         t_tpfit_BCID.clear()
-        progress(tm.time()-tstart, k, len(missing))
+        progress(tm.time()-tstart, nmiss, len(missing))
 
-        
+    errfile.close()
     output.Write()
     output.Close()
 
@@ -221,8 +240,8 @@ class FitPacket(object):
     def __init__(self, n, time, bcid, mxl, nhit, cntr):
         self.nevent   = n
         self.time     = time
-        self.timesec  = int(time)/pow(10,9)
-        self.timensec = int(time)%pow(10,9)
+        self.timesec  = int(time)
+        self.timensec = int((time-int(time))*pow(10,9))
         self.hits     = []
         self.modhits  = []
         self.bcid     = bcid

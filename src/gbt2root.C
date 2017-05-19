@@ -95,54 +95,38 @@ int main(int argc, char* argv[]) {
   int ch;
   int ib;
   bool Aflag = false;
+  int nevent = 0;
   
   std::stringstream sline;
   std::stringstream sline2;
   std::stringstream sline3;
   // Loop through the entire input file
   if(ifile.is_open()){
-    while(getline(ifile,line)){
-      string dum;
-      sline.clear();
-      sline << line;
-      sline >> dum;
-      sline >> EventNum;
-      sline >> dum;
-      sline >> Time_sec;
-      sline >> dum;
-      sline >> Time_nsec;
-      if (debug)
-        cout << "EventNum: " << EventNum << endl;
-      gbt_VMM.clear();
-      gbt_CH.clear();
-      gbt_MMFE8.clear();
-      gbt_BCID.clear();
-      
-      for(int i = 0; i < Nbuff; i++){
-        sline2.clear();
-        if(getline(ifile,line)){
-          if (debug)
-            cout << "line: " << line << endl;
-          if (!Aflag)
-            Aflag = true;
-          else
-            Aflag = false;
-          sline2 << line;
-          sline2 >> dum;
-          sline2 >> bcid;
-          if (!Aflag)
-            if (!TPfromA)
-              TPbcid = bcid;
-          if (Aflag)
-            if (TPfromA)
-              TPbcid = bcid;
-          sline2 >> dum;
-          sline2 >> nhits;
-          if (Aflag)
-            nhitscycle = nhits;
-          else
-            nhitscycle = nhitscycle + nhits;
-        }
+    string dum;
+    while(getline(ifile,line)){ 
+      sline2.clear();
+      if (line.substr(0,5) != "Event") {
+        if (debug)
+          cout << "line: " << line << endl;
+        if (!Aflag)
+          Aflag = true;
+        else
+          Aflag = false;
+        sline2 << line;
+        sline2 >> dum;
+        sline2 >> bcid;
+        if (!Aflag)
+          if (!TPfromA)
+            TPbcid = bcid;
+        if (Aflag)
+          if (TPfromA)
+            TPbcid = bcid;
+        sline2 >> dum;
+        sline2 >> nhits;
+        if (Aflag)
+          nhitscycle = nhits;
+        else
+          nhitscycle = nhitscycle + nhits;
         for (int j = 0; j < 4; j++){
           sline3.clear();
           if(getline(ifile,line)){
@@ -165,19 +149,40 @@ int main(int argc, char* argv[]) {
               gbt_VMM.push_back(vmm);
               gbt_CH.push_back(ch);
               gbt_MMFE8.push_back(MMFE8Order[ib]);
-
             }
           }
         }
         if (!Aflag)
           for (int k = 0; k < nhitscycle; k++)
             gbt_BCID.push_back(TPbcid);
+      } // if not event
+      else {
+        if (nevent != 0){
+          tree->Fill();
+          sline.clear();
+          sline2.clear();
+          sline3.clear();
+        }
+        nevent++;
+        if (nevent%1000 == 0)
+          cout << "Processing event " << nevent << endl;
+        sline.clear();
+        sline << line;
+        sline >> dum;
+        sline >> EventNum;
+        sline >> dum;
+        sline >> Time_sec;
+        sline >> dum;
+        sline >> Time_nsec;
+        if (debug)
+          cout << "EventNum: " << EventNum << endl;
+        gbt_VMM.clear();
+        gbt_CH.clear();
+        gbt_MMFE8.clear();
+        gbt_BCID.clear();
       }
-      tree->Fill();
-      sline.clear();
-      sline2.clear();
-      sline3.clear();
     }
+    tree->Fill();
   }
 
   ifile.close();
