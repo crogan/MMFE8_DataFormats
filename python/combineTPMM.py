@@ -18,6 +18,9 @@ vecints = ["tp_EventNum", "tp_cntr", "tp_Time_sec", "tp_Time_nsec", "tp_BCID", "
 vecdubs = ["tp_mxlocal"]
 vecvecs = ["tp_hit_MMFE8", "tp_hit_VMM", "tp_hit_CH", "tp_hit_BCID"]
 
+deltat_min = -0.006
+deltat_max = 0.1
+
 def main():
 
     ops = options()
@@ -63,6 +66,7 @@ def main():
     nMMcands = 0
     nMMmatch = 0
     nMMtrigs = 0
+    nNotShared = 0
 
     # configure output
     # add branches to our cloned tree
@@ -108,6 +112,7 @@ def main():
         ntr = 0
         maxshared = 0
         entsTP = trTP.GetEntries()
+        all_shared = True
 
         # look for triggers
         while True:
@@ -126,13 +131,13 @@ def main():
                 break
 
             # too soon
-            if deltat < -0.2:
+            if deltat < deltat_min:
                 verbose(color.GRAY + debug + " Found unrelated trigger." + color.END)
                 entTP += 1
                 continue
 
             # passed it -- this MM event has no triggers
-            if deltat > 1.0 and ntr == 0:
+            if deltat > deltat_max:
                 verbose(color.RED + debug + (" No triggers for this event. Resetting to TP = %s " % (entTP_prev)) + color.END)
                 entTP = entTP_prev
                 break
@@ -142,8 +147,10 @@ def main():
             nshared = len(filter(lambda hit: hit in hits_mm, hits_tp))
             debug += "nhits = %s  nshar = %s " % (len(hits_tp), nshared)
 
-            if nshared == len(hits_tp) or nshared == len(hits_tp)-1:
-                verbose(color.GREEN + debug + " Found matching trigger." + color.END)
+            if nshared == len(hits_tp) or nshared == len(hits_tp)-1 or nshared == len(hits_tp)-2:
+                verbose(color.GREEN + debug + " Found matching trigger. " + color.END)
+                if nshared == len(hits_tp)-1 and all_shared:
+                    all_shared = False
                 ntr += 1
                 entTP += 1
                 entTP_prev = entTP
@@ -162,17 +169,16 @@ def main():
                 if combTP:
                     treedict["tp_hit_BCID"].push_back(copy.deepcopy(trTP.tpfit_BCID))
 
-            elif ntr == 0:
+            else:
                 verbose(color.GRAY + debug + " Found unrelated trigger.")
                 entTP += 1
                 continue
-            else:
-                # dont touch entTP! start next MM event from here.
-                verbose(color.BLUE + debug + " Next trigger doesnt match! Done with this MM. " + color.END)
-                nMMmatch += 1
-                break
 
         # write
+        if not all_shared:
+            nNotShared += 1
+        if ntr > 0:
+            nMMmatch += 1
         clonetree.Fill()
 
     # save
@@ -185,6 +191,7 @@ def main():
     print "Found %i MM events, triggerable" % (nMMcands)
     print "Found %i MM events with a matched trigger" % (nMMmatch)
     print " %4.2f triggers per matched MM"     % (float(nMMtrigs) / float(nMMmatch))
+    print "Found %i MM events with a matched trigger where at least 1 trigger has a made up hit" % (nNotShared)
     print
     print "Done! >^.^<"
     print
@@ -198,7 +205,7 @@ def is_triggerable(hits):
     return len(bos) >= 4
 
 def verbose(msg):
-    if "verbose" in sys.argv:
+    if "--verbose" in sys.argv:
         print msg
 
 def fatal(msg):
@@ -223,10 +230,11 @@ class color:
 
 def options():
     parser = argparse.ArgumentParser(usage=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("--tp",  help="input TP file")
-    parser.add_argument("--mm",  help="input MM file")
-    parser.add_argument("--max", help="max number of MM events")
-    parser.add_argument("--out", help="output ROOT file", default="test.root")
+    parser.add_argument("--tp",      help="input TP file")
+    parser.add_argument("--mm",      help="input MM file")
+    parser.add_argument("--max",     help="max number of MM events")
+    parser.add_argument("--out",     help="output ROOT file", default="test.root")
+    parser.add_argument("--verbose", help="crank up the verbosity", action="store_true")
     return parser.parse_args()
 
 def progress(time_diff, nprocessed, ntotal):
