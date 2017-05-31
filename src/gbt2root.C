@@ -9,6 +9,7 @@
 #include <bitset>
 #include <cmath>
 #include <string>
+#include <chrono>
 
 // ROOT includes
 #include <TROOT.h>
@@ -48,6 +49,7 @@ int main(int argc, char* argv[]) {
   ifstream ifile(inputFileName);
 
   // ROOT output tree and branches
+  TFile* fout = new TFile(outputFileName, "RECREATE");
   TTree* tree = new TTree("GBT_data","GBT_data");
 
   int Nb = 8;
@@ -97,6 +99,11 @@ int main(int argc, char* argv[]) {
   bool Aflag = false;
   int nevent = 0;
   
+  std::chrono::time_point<std::chrono::system_clock> time_start, time_now;
+  std::chrono::duration<double> elapsed_seconds;
+  time_start = std::chrono::system_clock::now();
+  float rate = 0.0;
+
   std::stringstream sline;
   std::stringstream sline2;
   std::stringstream sline3;
@@ -164,8 +171,12 @@ int main(int argc, char* argv[]) {
           sline3.clear();
         }
         nevent++;
-        if (nevent%1000 == 0)
-          cout << "Processing event " << nevent << endl;
+        if (nevent % 10000 == 0){
+          time_now = std::chrono::system_clock::now();
+          elapsed_seconds = time_now - time_start;
+          rate = (float)(nevent)/elapsed_seconds.count();
+          std::cout << "Processing event " << nevent << ", rate = " << rate << "Hz\r" << std::flush;
+        }
         sline.clear();
         sline << line;
         sline >> dum;
@@ -185,10 +196,9 @@ int main(int argc, char* argv[]) {
     tree->Fill();
   }
 
+  std::cout << std::endl;
   ifile.close();
 
-  TFile* fout = new TFile(outputFileName, "RECREATE");
-  fout->cd();
   tree->Write();
   fout->Close();
 

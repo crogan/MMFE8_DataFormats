@@ -8,6 +8,7 @@
 #include <ctime>
 #include <bitset>
 #include <cmath>
+#include <chrono>
 
 // ROOT includes
 #include <TROOT.h>
@@ -46,6 +47,7 @@ int main(int argc, char* argv[]) {
   ifstream ifile(inputFileName);
 
   // ROOT output tree and branches
+  TFile* fout = new TFile(outputFileName, "RECREATE");
   TTree* tree = new TTree("TPfit_data","TPfit_data");
 
   int Nb = 8;
@@ -75,6 +77,11 @@ int main(int argc, char* argv[]) {
   tree->Branch("tpfit_CH", &tpfit_CH);
   tree->Branch("tpfit_MMFE8", &tpfit_MMFE8);
   tree->Branch("tpfit_n", &tpfit_n);
+
+  std::chrono::time_point<std::chrono::system_clock> time_start, time_now;
+  std::chrono::duration<double> elapsed_seconds;
+  time_start = std::chrono::system_clock::now();
+  float rate = 0.0;
 
   int p;
   int p2;
@@ -134,13 +141,19 @@ int main(int argc, char* argv[]) {
         sline5 >> cntr;
         }
       tree->Fill();
+
+      if (EventNum % 10000 == 0){
+        time_now = std::chrono::system_clock::now();
+        elapsed_seconds = time_now - time_start;
+        rate = (float)(EventNum)/elapsed_seconds.count();
+        std::cout << "Processing event " << EventNum << ", rate = " << rate << "Hz\r" << std::flush;
+      }
     }
   }
 
+  std::cout << std::endl;
   ifile.close();
 
-  TFile* fout = new TFile(outputFileName, "RECREATE");
-  fout->cd();
   tree->Write();
   fout->Close();
 
