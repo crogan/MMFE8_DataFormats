@@ -18,8 +18,8 @@ vecints = ["tp_EventNum", "tp_cntr", "tp_Time_sec", "tp_Time_nsec", "tp_BCID", "
 vecdubs = ["tp_mxlocal"]
 vecvecs = ["tp_hit_MMFE8", "tp_hit_VMM", "tp_hit_CH", "tp_hit_BCID"]
 
-deltat_min = -0.006
-deltat_max = 0.1
+deltat_min = -0.01
+deltat_max = 0.06
 
 def main():
 
@@ -92,6 +92,7 @@ def main():
         _ = trMM.GetEntry(entMM)
         if entMM % 100 == 0 and entMM > 0:
             progress(time.time() - start_time, entMM, entsMM)
+        evMM = trMM.mm_EventNum if combMM else trMM.EventNum
 
         # clear the TP branches
         reset(treedict)
@@ -102,11 +103,11 @@ def main():
         verbose("Event %i :: %i hits" % (entMM, len(hits_mm)))
 
         # triggerable?
-        if not is_triggerable(hits_mm):
-            verbose("  Not triggerable!")
+        if is_triggerable(hits_mm):
+            nMMcands += 1
             triggerable = True
         else:
-            nMMcands += 1
+            verbose("  Not triggerable!")
             triggerable = False
 
         ntr = 0
@@ -115,17 +116,18 @@ def main():
         all_shared = True
 
         # look for triggers
-        while True:
+        while triggerable:
 
             _ = trTP.GetEntry(entTP)
+            evTP = trTP.EventNum
 
             # time difference
             tTP = trTP.Time_sec + trTP.Time_nsec/pow(10, 9.0)
             deltat = tTP - tMM
-            debug = "  entMM = %s  entTP = %s  dt = %7.4f "  % (entMM, entTP, deltat)
+            debug = "  evMM = %s  entMM = %s  evTP = %s  entTP = %s  dt = %7.4f "  % (evMM, entMM, evTP, entTP, deltat)
 
             # at the end!
-            if entTP == entsTP:
+            if entTP == entsTP-1:
                 verbose(color.RED + debug + (" No more triggers! Resetting to TP = %s " % (entTP_prev)) + color.END)
                 entTP = entTP_prev
                 break
@@ -136,10 +138,9 @@ def main():
                 entTP += 1
                 continue
 
-            # passed it -- this MM event has no triggers
+            # passed it
             if deltat > deltat_max:
-                verbose(color.RED + debug + (" No triggers for this event. Resetting to TP = %s " % (entTP_prev)) + color.END)
-                entTP = entTP_prev
+                verbose(color.GRAY + debug + (" Passed the time window. Next MM event.") + color.END)
                 break
 
             # evaluate goodness of matching
@@ -147,7 +148,8 @@ def main():
             nshared = len(filter(lambda hit: hit in hits_mm, hits_tp))
             debug += "nhits = %s  nshar = %s " % (len(hits_tp), nshared)
 
-            if nshared == len(hits_tp) or nshared == len(hits_tp)-1 or nshared == len(hits_tp)-2:
+            # accept everything in the time window
+            if nshared >= 0:
                 verbose(color.GREEN + debug + " Found matching trigger. " + color.END)
                 if nshared == len(hits_tp)-1 and all_shared:
                     all_shared = False
@@ -177,7 +179,7 @@ def main():
         # write
         if not all_shared:
             nNotShared += 1
-        if ntr > 0:
+        if triggerable and ntr > 0:
             nMMmatch += 1
         clonetree.Fill()
 
