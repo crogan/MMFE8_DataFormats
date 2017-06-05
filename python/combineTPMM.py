@@ -148,7 +148,7 @@ def main():
             nshared = len(filter(lambda hit: hit in hits_mm, hits_tp))
             debug += "nhits = %s  nshar = %s " % (len(hits_tp), nshared)
 
-            # if nshared == len(hits_tp) or nshared == len(hits_tp)-1 or nshared == len(hits_tp)-2:
+            # accept everything in the time window
             if nshared >= 0:
                 verbose(color.GREEN + debug + " Found matching trigger. " + color.END)
                 if nshared == len(hits_tp)-1 and all_shared:
