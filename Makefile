@@ -8,7 +8,7 @@ GLIBS          = $(filter-out -stdlib=libc++ -pthread , $(ROOTGLIBS))
 
 INCLUDEDIR       = ./include/
 SRCDIR           = ./src/
-CXX	         += -I$(INCLUDEDIR) -I.
+CXX             += -I$(INCLUDEDIR) -I.
 OUTOBJ	         = ./obj/
 
 CC_FILES := $(wildcard src/*.cc)
