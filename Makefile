@@ -16,7 +16,7 @@ HH_FILES := $(wildcard include/*.hh)
 OBJ_FILES := $(addprefix $(OUTOBJ),$(notdir $(CC_FILES:.cc=.o)))
 DICT_FILES := $(wildcard include/*.pcm)
 
-all: VectorDict.cxx xADCcalib2dat PDOcalib2dat TDOcalib2dat dat2root raw2dat raw2evtdat raw2root scint2root tp2root tpfit2root gbt2root tptime2root combine2root combine2dat
+all: VectorDict.cxx xADCcalib2dat PDOcalib2dat TDOcalib2dat dat2root raw2dat raw2evtdat raw2root scint2root tp2root tpfit2root gbt2root tptime2root combine2root combine2dat combineTPGBT
 
 VectorDict.cxx: $(INCLUDEDIR)VectorDict.hh
 	rootcint -f VectorDict.cxx -c $(CXXFLAGS) -p $ $<
@@ -80,6 +80,10 @@ combine2dat:  $(SRCDIR)combine2dat.C $(OBJ_FILES) $(HH_FILES)
 
 $(OUTOBJ)%.o: src/%.cc include/%.hh
 	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+combineTPGBT:  $(SRCDIR)combineTPGBT_standalone.c $(OBJ_FILES) $(HH_FILES)
+	$(CXX) $(CXXFLAGS) -o combineTPGBT  $ $< $(GLIBS)
+	touch combineTPGBT
 
 clean:
 	rm -f $(OUTOBJ)*.o
