@@ -380,14 +380,15 @@ int main( int argc, char *argv[] )
                     t_tpfit_BCID->clear();
                 }
             }
-
+            // increment j, important to know where in the loop this is
             j++;
 
             // UNCOMMENT THIS IF YOU WANT TO ESTIMATE HOW LONG THE PROGRAM WILL TAKE TO FINISH  
             // elapsed_seconds = (std::chrono::system_clock::now() - time_start);
             // progress(elapsed_seconds.count(), i, gbt_tree->GetEntries());
         } 
-
+        // increment i, if you're messing with this make sure you know which
+        // loop its incrementing
     	i++;
     }
 
