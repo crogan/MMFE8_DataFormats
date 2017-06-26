@@ -8,7 +8,7 @@ GLIBS          = $(filter-out -stdlib=libc++ -pthread , $(ROOTGLIBS))
 
 INCLUDEDIR       = ./include/
 SRCDIR           = ./src/
-CXX	         += -I$(INCLUDEDIR) -I.
+CXX             += -I$(INCLUDEDIR) -I.
 OUTOBJ	         = ./obj/
 
 CC_FILES := $(wildcard src/*.cc)
@@ -23,59 +23,59 @@ VectorDict.cxx: $(INCLUDEDIR)VectorDict.hh
 	touch VectorDict.cxx
 
 xADCcalib2dat:  $(SRCDIR)xADCcalib2dat.C $(OBJ_FILES) $(HH_FILES)
-	$(CXX) $(CXXFLAGS) -o xADCcalib2dat $(GLIBS) $ $<
+	$(CXX) $(CXXFLAGS) -o xADCcalib2dat $ $< $(GLIBS)
 	touch xADCcalib2dat	
 
 PDOcalib2dat:  $(SRCDIR)PDOcalib2dat.C $(OBJ_FILES) $(HH_FILES)
-	$(CXX) $(CXXFLAGS) -o PDOcalib2dat $(GLIBS) $ $<
+	$(CXX) $(CXXFLAGS) -o PDOcalib2dat $ $< $(GLIBS)
 	touch PDOcalib2dat
 
 TDOcalib2dat:  $(SRCDIR)TDOcalib2dat.C $(OBJ_FILES) $(HH_FILES)
-	$(CXX) $(CXXFLAGS) -o TDOcalib2dat $(GLIBS) $ $<
+	$(CXX) $(CXXFLAGS) -o TDOcalib2dat $ $< $(GLIBS)
 	touch TDOcalib2dat
 
 dat2root:  $(SRCDIR)dat2root.C $(OBJ_FILES) $(HH_FILES)
-	$(CXX) $(CXXFLAGS) -o dat2root $(GLIBS) $ $<
+	$(CXX) $(CXXFLAGS) -o dat2root $ $< $(GLIBS)
 	touch dat2root
 
 raw2dat:  $(SRCDIR)raw2dat.C $(OBJ_FILES) $(HH_FILES)
-	$(CXX) $(CXXFLAGS) -o raw2dat $(GLIBS) $ $<
+	$(CXX) $(CXXFLAGS) -o raw2dat $ $< $(GLIBS)
 	touch raw2dat
 
 raw2evtdat:  $(SRCDIR)raw2evtdat.C $(OBJ_FILES) $(HH_FILES)
-	$(CXX) $(CXXFLAGS) -o raw2evtdat $(GLIBS) $ $<
+	$(CXX) $(CXXFLAGS) -o raw2evtdat $ $< $(GLIBS)
 	touch raw2evtdat
 
 raw2root:  $(SRCDIR)raw2root.C $(OBJ_FILES) $(HH_FILES)
-	$(CXX) $(CXXFLAGS) -o raw2root $(GLIBS) $ $<
+	$(CXX) $(CXXFLAGS) -o raw2root $ $< $(GLIBS)
 	touch raw2root
 
 scint2root:  $(SRCDIR)scint2root.C $(OBJ_FILES) $(HH_FILES)
-	$(CXX) $(CXXFLAGS) -o scint2root $(GLIBS) $ $<
+	$(CXX) $(CXXFLAGS) -o scint2root $ $< $(GLIBS)
 	touch scint2root
 
 tp2root:  $(SRCDIR)tp2root.C $(OBJ_FILES) $(HH_FILES)
-	$(CXX) $(CXXFLAGS) -o tp2root $(GLIBS) $ $<
+	$(CXX) $(CXXFLAGS) -o tp2root $ $< $(GLIBS)
 	touch tp2root
 
 tpfit2root:  $(SRCDIR)tpfit2root.C $(OBJ_FILES) $(HH_FILES)
-	$(CXX) $(CXXFLAGS) -o tpfit2root $(GLIBS) $ $<
+	$(CXX) $(CXXFLAGS) -o tpfit2root $ $< $(GLIBS)
 	touch tpfit2root
 
 gbt2root:  $(SRCDIR)gbt2root.C $(OBJ_FILES) $(HH_FILES)
-	$(CXX) $(CXXFLAGS) -o gbt2root $(GLIBS) $ $<
+	$(CXX) $(CXXFLAGS) -o gbt2root $ $< $(GLIBS)
 	touch gbt2root
 
 tptime2root:  $(SRCDIR)tptime2root.C $(OBJ_FILES) $(HH_FILES)
-	$(CXX) $(CXXFLAGS) -o tptime2root $(GLIBS) $ $<
+	$(CXX) $(CXXFLAGS) -o tptime2root $ $< $(GLIBS)
 	touch tptime2root
 
 combine2root:  $(SRCDIR)combine2root.C $(OBJ_FILES) $(HH_FILES) $(DICT_FILES)
-	$(CXX) $(CXXFLAGS) -o combine2root $(GLIBS) $ $<
+	$(CXX) $(CXXFLAGS) -o combine2root $ $< $(GLIBS)
 	touch combine2root
 
 combine2dat:  $(SRCDIR)combine2dat.C $(OBJ_FILES) $(HH_FILES)
-	$(CXX) $(CXXFLAGS) -o combine2dat $(GLIBS) $ $<
+	$(CXX) $(CXXFLAGS) -o combine2dat $ $< $(GLIBS)
 	touch combine2dat
 
 $(OUTOBJ)%.o: src/%.cc include/%.hh
