@@ -350,8 +350,7 @@ int main( int argc, char *argv[] )
                                 t_tpfit_MMFE8->push_back(tpmmfes[counter1]);
                                 t_tpfit_VMM->push_back(tpvmms[counter1]);
                                 t_tpfit_CH->push_back(tpchs[counter1]);
-                                t_tpfit_BCID->push_back(gbtbcids[counter1]);
-                                tmpcount = counter2;  
+                                t_tpfit_BCID->push_back(gbtbcids[counter1]); 
                             }
 
                         }
