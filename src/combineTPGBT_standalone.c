@@ -179,7 +179,6 @@ int main( int argc, char *argv[] )
     int counter = 0;
     int j;
     int currifitpk = 0;
-    int tmpcount = 0;
     int tsize, gsize;
     int gtmp;
     // vectors that need to be created that will hold everything
