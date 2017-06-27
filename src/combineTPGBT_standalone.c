@@ -1,7 +1,7 @@
 /* 
 Program in C to combine TPFit data and GBT data into one file based on the BCIDS
 Written by Joseph Farah on June 19, 2017
-Last updated by [Joseph Farah] on: [June 23, 2017]
+Last updated by [Joseph Farah] on: [June 27, 2017]
 
 Notes
 - for some reason this code causes the root intepreter to segfault when .q is run
@@ -98,7 +98,7 @@ int main( int argc, char *argv[] )
     int                 t_timesec;
     int                 t_timensec;
     int                 t_bcid;
-    int                 t_mxlocal;
+    float                 t_mxlocal;
     int                 t_tpfit_n;
     std::vector<int>    *t_tpfit_VMM = 0;
     std::vector<int>    *t_tpfit_CH = 0;
