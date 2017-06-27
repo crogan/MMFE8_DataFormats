@@ -241,7 +241,7 @@ int main( int argc, char *argv[] )
 
         // if the time exceeds a certain limit, break
         // eventually when we're out of the testing phase we'll remove the i limitation
-        if(i>10000 || gbttime > 1495040000) { std::cout << "done" << std::endl;break; }
+        if(gbttime > 1495040000) { std::cout << "done" << std::endl;break; }
 
         /* creating a list containing the coordinates for each part of the event*/
         for(counter = 0; counter < gbtMMFE8->size(); counter++)
