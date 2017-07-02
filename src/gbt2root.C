@@ -23,12 +23,12 @@ bool debug = false;
 int main(int argc, char* argv[]) {
   char inputFileName[400];
   char outputFileName[400];
-
+  int RunNum;
   if ( argc < 2 ){
     cout << "Error at Input: please specify an input .dat file";
     cout << " and an output filename" << endl;
-    cout << "Example:   ./gbt2root input_file.dat" << endl;
-    cout << "Example:   ./gbt2root input_file.dat -o output_file.root" << endl;
+    cout << "Example:   ./gbt2root input_file.dat -r runnum" << endl;
+    cout << "Example:   ./gbt2root input_file.dat -o output_file.root -r runnum" << endl;
     return 1;
   }
   bool user_output = false;
@@ -38,12 +38,16 @@ int main(int argc, char* argv[]) {
       sscanf(argv[i+1],"%s", outputFileName);
       user_output = true;
     }
+    if (strncmp(argv[i],"-r",2)==0){
+      RunNum = atoi(argv[i+1]);
+    }  
   }
   if(!user_output)
     sprintf(outputFileName,"%s.root",inputFileName);
 
   cout << "Input File:  " << inputFileName << endl;
   cout << "Output File: " << outputFileName << endl;
+  cout << "RunNumber: " << RunNum << endl;
 
   string line;
   ifstream ifile(inputFileName);
@@ -60,9 +64,21 @@ int main(int argc, char* argv[]) {
   int Time_nsec;
 
   vector<int> boardOrder = {2,4,3,5,1,0,6,7};
-  vector<int> MMFE8Order = {118,116,102,119,106,107,117,105};
-
-  cout << endl;
+  vector<int> MMFE8Order;
+  vector<int> MMFE8Order_3525 = {118,111,120,119,106,107,101,105};
+  vector<int> MMFE8Order_3524 = {118,116,102,119,106,107,101,105};
+  vector<int> MMFE8Order_3518 = {118,116,102,119,106,107,117,105};
+  if (RunNum >= 3525){
+    MMFE8Order = MMFE8Order_3525;
+  }
+  else if (RunNum >= 3524)
+    MMFE8Order = MMFE8Order_3524;
+  else if (RunNum >= 3518)
+    MMFE8Order = MMFE8Order_3518;
+  else {
+    cout << "Put in MMFE8 config!" << endl;
+    return 1;
+  }
   cout << "Using board IPs (from ind 0 to 7): " << endl;
   for (int i = 0; i < Nb; i++){
     cout << MMFE8Order[i] << " ";

@@ -25,16 +25,20 @@ int main(int argc, char* argv[]) {
   if ( argc < 2 ){
     cout << "Error at Input: please specify an input .dat file";
     cout << " and an output filename" << endl;
-    cout << "Example:   ./tpfit2root input_file.dat" << endl;
-    cout << "Example:   ./tpfit2root input_file.dat -o output_file.root" << endl;
+    cout << "Example:   ./tpfit2root input_file.dat -r runnumber" << endl;
+    cout << "Example:   ./tpfit2root input_file.dat -o output_file.root -r runnumber" << endl;
     return 1;
   }
   bool user_output = false;
+  int RunNum = -1;
   for (int i=0;i<argc;i++){
     sscanf(argv[1],"%s", inputFileName);
     if (strncmp(argv[i],"-o",2)==0){
       sscanf(argv[i+1],"%s", outputFileName);
       user_output = true;
+    }
+    if (strncmp(argv[i],"-r",2)==0){
+      RunNum = atoi(argv[i+1]);
     }
   }
   if(!user_output)
@@ -42,6 +46,7 @@ int main(int argc, char* argv[]) {
 
   cout << "Input File:  " << inputFileName << endl;
   cout << "Output File: " << outputFileName << endl;
+  cout << "Run Number: " << RunNum << endl;
 
   string line;
   ifstream ifile(inputFileName);
@@ -59,8 +64,28 @@ int main(int argc, char* argv[]) {
   int BCID;
   float mxlocal;
 
+  vector<int> MMFE8Order;
+  vector<int> MMFE8Order_3525 = {118,111,120,119,106,107,101,105};
+  vector<int> MMFE8Order_3524 = {118,116,102,119,106,107,101,105};
+  vector<int> MMFE8Order_3518 = {118,116,102,119,106,107,117,105};
   vector<int> boardOrder = {5, 3, 4, 2, 7, 6, 1, 0};
-  vector<int> MMFE8Order = {118,116,102,119,106,107,117,105};
+  if (RunNum >= 3525){
+    MMFE8Order = MMFE8Order_3525;
+  }
+  else if (RunNum >= 3524)
+    MMFE8Order = MMFE8Order_3524;
+  else if (RunNum >= 3518)
+    MMFE8Order = MMFE8Order_3518;
+  else {
+    cout << "Put in MMFE8 config!" << endl;
+    return 1;
+  }
+  cout << "Using board IPs (from ind 0 to 7): " << endl;
+  for (int i = 0; i < Nb; i++){
+    cout << MMFE8Order[i] << " ";
+  }
+  cout << endl;
+  cout << endl;
 
   vector<int> tpfit_VMM;
   vector<int> tpfit_CH;
