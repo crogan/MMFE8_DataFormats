@@ -1,7 +1,7 @@
 /* 
 Program in C to combine TPFit data and GBT data into one file based on the BCIDS
 Written by Joseph Farah on June 19, 2017
-Last updated by [Joseph Farah] on: [June 23, 2017]
+Last updated by [Joseph Farah] on: [June 27, 2017]
 
 Notes
 - for some reason this code causes the root intepreter to segfault when .q is run
@@ -241,7 +241,7 @@ int main( int argc, char *argv[] )
 
         // if the time exceeds a certain limit, break
         // eventually when we're out of the testing phase we'll remove the i limitation
-        if(i>10000 || gbttime > 1495040000) { std::cout << "done" << std::endl;break; }
+        if(gbttime > 1495040000) { std::cout << "done" << std::endl;break; }
 
         /* creating a list containing the coordinates for each part of the event*/
         for(counter = 0; counter < gbtMMFE8->size(); counter++)
@@ -288,7 +288,6 @@ int main( int argc, char *argv[] )
             tpfittime = tpTime_sec + tpTime_nsec/pow(10.,9);
             bcid = BCID;
             mxloc = mxlocal;
-            std::cout << mxloc <<std::endl; 
             nhit = tpfit_n;
             spec_cntr = cntr;
 
