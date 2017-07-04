@@ -82,7 +82,7 @@ int main( int argc, char *argv[] )
 
     // get the number of all the entries in both of the trees
     // long ngbt = gbt_tree->GetEntries();
-    // long nfit = tpfit_tree->GetEntries();
+    long nfit = tpfit_tree->GetEntries();
 
     // create the output file, overwriting the old one if necessary
     TFile *output_file = new TFile(ofile, "RECREATE");
