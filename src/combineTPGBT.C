@@ -79,7 +79,14 @@ int main( int argc, char *argv[] )
     TFile *tpfit_file_object = new TFile(tfile);
     // pull the tpfit tree fromt he file
     TTree *tpfit_tree = (TTree*)tpfit_file_object->Get("TPfit_data");
-    std::cout << tpfit_tree << std::endl;
+    if (!gbt_tree){
+        std::cout << "Error: GBT tree is a null pointer!" << std::endl;
+        return 0;
+    }
+    if (!tpfit_tree){
+        std::cout << "Error: TPFIT tree is a null pointer!" << std::endl;
+        return 0;
+    }
 
     // get the number of all the entries in both of the trees
     // long ngbt = gbt_tree->GetEntries();
