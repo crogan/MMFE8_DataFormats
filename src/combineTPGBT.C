@@ -7,7 +7,7 @@ Notes
 - for some reason this code causes the root intepreter to segfault when .q is run
 - if you do it (type .q) twice the problem just goes away
 - how to print anythin that has type vector<int>: use * upon declaration and get
-	value with gbtMMFE8->at(0)
+    value with gbtMMFE8->at(0)
 - the above notes should be outdated as this is now a standalone script and not a root macro
 - just fucking die --KH
 */
@@ -53,42 +53,44 @@ int main( int argc, char *argv[] )
 {
     std::cout << "TIME BEGIN" << std::endl;
     get_time();
-	// check the number of args, it should be 3 for proper execution
-	// there will always be 4 args because the file name is the first arg
-	if( argc != 4 ) { std::cout << argv[0] << " needs three args. First arg is always GBT file, second is TPfit file, and third is the combined output file.\n\n" << std::endl 
+    // check the number of args, it should be 3 for proper execution
+    // there will always be 4 args because the file name is the first arg
+    if( argc != 4 ) { std::cout << argv[0] << " needs three args. First arg is always GBT file, second is TPfit file, and third is the combined output file.\n\n" << std::endl 
                                 << "example usage: ./combineTPGBT /path/to/gbtfile /path/to/tpfit/file /path/to/combined/output/file" << std::endl; return 0; }
 
-	// make all the filename strings constants to use in the TFile constructor
-	const char* gfile = argv[1];
-	const char* tfile = argv[2];
-	const char* ofile = argv[3];
+    // make all the filename strings constants to use in the TFile constructor
+    const char* gfile = argv[1];
+    const char* tfile = argv[2];
+    const char* ofile = argv[3];
 
     std::cout << "File arguments provided: ";
-	std::cout << gfile << " " << tfile <<  " " << ofile << std::endl;
+    std::cout << gfile << " " << tfile <<  " " << ofile << std::endl;
 
-	// initialize the GBT file using TFile and using the GBT file as the argument
-	// create new fileobject for GBT
-	TFile *gbt_file_object = new TFile(gfile);
-	// pull the tree from the file
-	TTree *gbt_tree = (TTree*)gbt_file_object->Get("GBT_data");
-	
-	// do the same thing now with the TPfit file
-	// create new file object for TPfit
-	TFile *tpfit_file_object = new TFile(tfile);
-	// pull the tpfit tree fromt he file
-	TTree *tpfit_tree = (TTree*)tpfit_file_object->Get("TPfit_data");
+    // initialize the GBT file using TFile and using the GBT file as the argument
+    // create new fileobject for GBT
+    TFile *gbt_file_object = new TFile(gfile);
+    // pull the tree from the file
+    TTree *gbt_tree = (TTree*)gbt_file_object->Get("GBT_data");    
+    std::cout << gbt_tree << std::endl;
+    
+    // do the same thing now with the TPfit file
+    // create new file object for TPfit
+    TFile *tpfit_file_object = new TFile(tfile);
+    // pull the tpfit tree fromt he file
+    TTree *tpfit_tree = (TTree*)tpfit_file_object->Get("TPfit_data");
+    std::cout << tpfit_tree << std::endl;
 
-	// get the number of all the entries in both of the trees
-	long ngbt = gbt_tree->GetEntries();
-	long nfit = tpfit_tree->GetEntries();
+    // get the number of all the entries in both of the trees
+    // long ngbt = gbt_tree->GetEntries();
+    // long nfit = tpfit_tree->GetEntries();
 
-	// create the output file, overwriting the old one if necessary
-	TFile *output_file = new TFile(ofile, "RECREATE");
+    // create the output file, overwriting the old one if necessary
+    TFile *output_file = new TFile(ofile, "RECREATE");
 
-	// this will create the combined branches data tree
-	// argument setup: Branch(branchname address, leaflist)
-	// for vectors, use the address of the vector instead of the name
-	TTree *combdata = new TTree("TPcomb_data", "TPcomb_data");
+    // this will create the combined branches data tree
+    // argument setup: Branch(branchname address, leaflist)
+    // for vectors, use the address of the vector instead of the name
+    TTree *combdata = new TTree("TPcomb_data", "TPcomb_data");
 
     // here i'm going to start creating the branches for the new file
     // this is going to require me initiliazing various variables to use
@@ -119,13 +121,13 @@ int main( int argc, char *argv[] )
 
     // get the addresses of all the branches in the GBT and TPFit trees
     // gbt tree address declaration
-    int 				gbtTime_sec;
-    int 				gbtTime_nsec;
+    int                 gbtTime_sec;
+    int                 gbtTime_nsec;
     int                 gEventNum;
-    std::vector<int> 	*gbtMMFE8 = 0;
-    std::vector<int> 	*gbt_VMM = 0;
-    std::vector<int> 	*gbt_CH = 0;
-    std::vector<int>	*gbt_BCID = 0;
+    std::vector<int>    *gbtMMFE8 = 0;
+    std::vector<int>    *gbt_VMM = 0;
+    std::vector<int>    *gbt_CH = 0;
+    std::vector<int>    *gbt_BCID = 0;
 
     // List of branches which may be unnecessary but whatever
     TBranch        *b_EventNum = 0;   
@@ -136,14 +138,14 @@ int main( int argc, char *argv[] )
     TBranch        *b_gbt_MMFE8 = 0;   
     TBranch        *b_gbt_BCID = 0;   
 
-   // initialize all the branches using the pointers just created
-   gbt_tree->SetBranchAddress("EventNum", &gEventNum, &b_EventNum);
-   gbt_tree->SetBranchAddress("Time_sec", &gbtTime_sec, &b_Time_sec);
-   gbt_tree->SetBranchAddress("Time_nsec", &gbtTime_nsec, &b_Time_nsec);
-   gbt_tree->SetBranchAddress("gbt_VMM", &gbt_VMM, &b_gbt_VMM);
-   gbt_tree->SetBranchAddress("gbt_CH", &gbt_CH, &b_gbt_CH);
-   gbt_tree->SetBranchAddress("gbt_MMFE8", &gbtMMFE8, &b_gbt_MMFE8);
-   gbt_tree->SetBranchAddress("gbt_BCID", &gbt_BCID, &b_gbt_BCID);
+    // initialize all the branches using the pointers just created
+    gbt_tree->SetBranchAddress("EventNum", &gEventNum, &b_EventNum);
+    gbt_tree->SetBranchAddress("Time_sec", &gbtTime_sec, &b_Time_sec);
+    gbt_tree->SetBranchAddress("Time_nsec", &gbtTime_nsec, &b_Time_nsec);
+    gbt_tree->SetBranchAddress("gbt_VMM", &gbt_VMM, &b_gbt_VMM);
+    gbt_tree->SetBranchAddress("gbt_CH", &gbt_CH, &b_gbt_CH);
+    gbt_tree->SetBranchAddress("gbt_MMFE8", &gbtMMFE8, &b_gbt_MMFE8);
+    gbt_tree->SetBranchAddress("gbt_BCID", &gbt_BCID, &b_gbt_BCID);
 
 
     // tpfit tree address declaration, FFS initialize your pointers
@@ -175,11 +177,9 @@ int main( int argc, char *argv[] )
     double tpfittime;
     double time_difference;
     int i = 0;
-    int num_changes_per_loop = 1;
     int counter = 0;
     int j;
     int currifitpk = 0;
-    int tsize, gsize;
     int gtmp;
     // vectors that need to be created that will hold everything
     const int GBT_COORDINATE_LENGTH = 9;
@@ -238,10 +238,6 @@ int main( int argc, char *argv[] )
         // get the exact tiem of the event in nanoseconds by adding the time
         // in seconds to the time in nanoseconds
         gbttime = gbtTime_sec + gbtTime_nsec/pow(10.,9);
-
-        // if the time exceeds a certain limit, break
-        // eventually when we're out of the testing phase we'll remove the i limitation
-        if(gbttime > 1495040000) { std::cout << "done" << std::endl;break; }
 
         /* creating a list containing the coordinates for each part of the event*/
         for(counter = 0; counter < gbtMMFE8->size(); counter++)
@@ -327,8 +323,6 @@ int main( int argc, char *argv[] )
                         tp_tmp_hit_storage.push_back(tpmmfes[counter2]);
                         tp_tmp_hit_storage.push_back(tpvmms[counter2]);
                         tp_tmp_hit_storage.push_back(tpchs[counter2]);
-                        gsize = gbt_tmp_hit_storage.size();
-                        tsize = tp_tmp_hit_storage.size();
 
                         for(int counter1=0; counter1<gbtmmfes.size(); counter1++)
                         {
@@ -337,7 +331,6 @@ int main( int argc, char *argv[] )
                             gbt_tmp_hit_storage.push_back(gbtmmfes[counter1]);
                             gbt_tmp_hit_storage.push_back(gbtvmms[counter1]);
                             gbt_tmp_hit_storage.push_back(gbtchs[counter1]);
-                            gsize = gbt_tmp_hit_storage.size();
                             // are the coordinates int eh gbt set the same as the 
                             // coordinates recorded by the trigger process? if yes
                             // continue, if no, don't do anything
@@ -382,12 +375,14 @@ int main( int argc, char *argv[] )
             j++;
 
             // UNCOMMENT THIS IF YOU WANT TO ESTIMATE HOW LONG THE PROGRAM WILL TAKE TO FINISH  
-            // elapsed_seconds = (std::chrono::system_clock::now() - time_start);
-            // progress(elapsed_seconds.count(), i, gbt_tree->GetEntries());
-        } 
+            if(j%1000==0) {    
+                elapsed_seconds = (std::chrono::system_clock::now() - time_start);
+                progress(elapsed_seconds.count(), i, gbt_tree->GetEntries());
+            }
+        }
         // increment i, if you're messing with this make sure you know which
         // loop its incrementing
-    	i++;
+        i++;
     }
 
 
@@ -395,5 +390,5 @@ int main( int argc, char *argv[] )
     output_file->Close();
     std::cout <<  "TIME END" << std::endl;
     get_time();
-	return 0;
+    return 0;
 }
