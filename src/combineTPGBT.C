@@ -32,11 +32,11 @@ void progress(double time_diff, int nprocessed, int ntotal){
   double rate = (double)(nprocessed+1)/time_diff;
   std::cout.precision(1);
   std::cout << "\r > " << nprocessed << " / " << ntotal 
-            << " | "   << std::fixed << 100*(double)(nprocessed)/(double)(ntotal) << "%"
-            << " | "   << std::fixed << rate << "Hz"
-            << " | "   << std::fixed << time_diff/60 << "m elapsed"
-            << " | "   << std::fixed << (double)(ntotal-nprocessed)/(rate*60) << "m remaining"
-            << std::flush;
+  << " | "   << std::fixed << 100*(double)(nprocessed)/(double)(ntotal) << "%"
+  << " | "   << std::fixed << rate << "Hz"
+  << " | "   << std::fixed << time_diff/60 << "m elapsed"
+  << " | "   << std::fixed << (double)(ntotal-nprocessed)/(rate*60) << "m remaining"
+  << std::flush;
   std::cout.precision(6);
 }
 
@@ -57,7 +57,7 @@ int main( int argc, char *argv[] )
     // check the number of args, it should be 3 for proper execution
     // there will always be 4 args because the file name is the first arg
     if( argc != 4 ) { std::cout << argv[0] << " needs three args. First arg is always GBT file, second is TPfit file, and third is the combined output file.\n\n" << std::endl 
-                                << "example usage: ./combineTPGBT /path/to/gbtfile /path/to/tpfit/file /path/to/combined/output/file" << std::endl; return 0; }
+        << "example usage: ./combineTPGBT /path/to/gbtfile /path/to/tpfit/file /path/to/combined/output/file" << std::endl; return 0; }
 
     // make all the filename strings constants to use in the TFile constructor
     const char* gfile = argv[1];
@@ -270,11 +270,11 @@ int main( int argc, char *argv[] )
             }
         }
 
-        // begin trying to align the TPfit packet with the GBT equivalent
+    // begin trying to align the TPfit packet with the GBT equivalent
         j = currifitpk;
         while(TRUE) {
 
-            //get trigger process across #j, whatever j happens to be
+        //get trigger process across #j, whatever j happens to be
             int nmatch = 0;
             tpfit_tree->GetEntry(j);
             tpmmfes.clear();
@@ -282,20 +282,20 @@ int main( int argc, char *argv[] )
             tpchs.clear();
             tpbcids.clear();
 
-            // if j is greater than the number of things in the fit tp file, break the loop
+        // if j is greater than the number of things in the fit tp file, break the loop
             if( j == nfit ) { break; }
 
-            // start declaring all the track information from tpfittree
+        // start declaring all the track information from tpfittree
             nevent = EventNum;
 
-            //  std::cout << "Eventnum " << nevent <<  std::endl; 
+        //  std::cout << "Eventnum " << nevent <<  std::endl; 
             tpfittime = tpTime_sec + tpTime_nsec/pow(10.,9);
             bcid = BCID;
             mxloc = mxlocal;
             nhit = tpfit_n;
             spec_cntr = cntr;
 
-            // create the vectors that will hold all the TPfit event information
+        // create the vectors that will hold all the TPfit event information
             for(counter = 0; counter < tpfit_MMFE8->size(); counter++)
             {
                 tpmmfes.push_back(tpfit_MMFE8->at(counter));
@@ -305,26 +305,26 @@ int main( int argc, char *argv[] )
             }
             counter = 0;
 
-            // check the time difference betwen the tp and gbt packet
-            // they should ideally be very close together, some difference is acceptable
-            // just fucking die --KH but if the difference is greater than 0.2 we are misaligning the data
+        // check the time difference betwen the tp and gbt packet
+        // they should ideally be very close together, some difference is acceptable
+        // just fucking die --KH but if the difference is greater than 0.2 we are misaligning the data
             time_difference = tpfittime - gbttime;
 
-            // break if we've gone to far
+        // break if we've gone to far
             if( time_difference>0.2 ) { break; }
 
-            // if the time difference between the tp packet and the gbt packet
-            // is within reasonable error, do the following
+        // if the time difference between the tp packet and the gbt packet
+        // is within reasonable error, do the following
             time_difference = fabs(time_difference);
 
-            // if the time difference is within reasonable error
+        // if the time difference is within reasonable error
             if( time_difference<0.2 )
             {
-                // is the time of the tpfit packet in the list of the gbt packet BCIDS
-                // we created earlier? if so, continue
+            // is the time of the tpfit packet in the list of the gbt packet BCIDS
+            // we created earlier? if so, continue
                 if( std::find(gbtbcids.begin(), gbtbcids.end(), bcid) != gbtbcids.end() )
                 {
-                    // fill a vector with the single hit information to compare to the gbt stuff
+                // fill a vector with the single hit information to compare to the gbt stuff
                     for(int counter2=0; counter2<tpmmfes.size(); counter2++)
                     {
                         tp_tmp_hit_storage.clear();
@@ -339,13 +339,13 @@ int main( int argc, char *argv[] )
                             gbt_tmp_hit_storage.push_back(gbtmmfes[counter1]);
                             gbt_tmp_hit_storage.push_back(gbtvmms[counter1]);
                             gbt_tmp_hit_storage.push_back(gbtchs[counter1]);
-                            // are the coordinates int eh gbt set the same as the 
-                            // coordinates recorded by the trigger process? if yes
-                            // continue, if no, don't do anything
+                        // are the coordinates int eh gbt set the same as the 
+                        // coordinates recorded by the trigger process? if yes
+                        // continue, if no, don't do anything
                             if( gbt_tmp_hit_storage == tp_tmp_hit_storage )
                             {
-                                // increment nmatch too add to the lsit of entries
-                                // that have corresponding trigger events
+                            // increment nmatch too add to the lsit of entries
+                            // that have corresponding trigger events
                                 nmatch += 1;   
                                 t_tpfit_MMFE8->push_back(tpmmfes[counter1]);
                                 t_tpfit_VMM->push_back(tpvmms[counter1]);
@@ -357,7 +357,7 @@ int main( int argc, char *argv[] )
 
                     }
 
-                    // update the combined branches with all the new data
+                // update the combined branches with all the new data
                     t_mxlocal = mxloc;
                     t_bcid = BCID;
                     t_tpfit_n = nhit;
@@ -372,25 +372,26 @@ int main( int argc, char *argv[] )
                         combdata->Fill();
 
                     }
-                    // clear the current branch entries to make room for the next ones
+                // clear the current branch entries to make room for the next ones
                     t_tpfit_MMFE8->clear();
                     t_tpfit_VMM->clear();
                     t_tpfit_CH->clear();
                     t_tpfit_BCID->clear();
                 }
             }
-            // increment j, important to know where in the loop this is
+        // increment j, important to know where in the loop this is
             j++;
 
-            // UNCOMMENT THIS IF YOU WANT TO ESTIMATE HOW LONG THE PROGRAM WILL TAKE TO FINISH  
-            if(j%1000==0) {    
-                elapsed_seconds = (std::chrono::system_clock::now() - time_start);
-                progress(elapsed_seconds.count(), i, gbt_tree->GetEntries());
-            }
+        // UNCOMMENT THIS IF YOU WANT TO ESTIMATE HOW LONG THE PROGRAM WILL TAKE TO FINISH  
+
         }
-        // increment i, if you're messing with this make sure you know which
-        // loop its incrementing
+    // increment i, if you're messing with this make sure you know which
+    // loop its incrementing
         i++;
+        if(i%1000==0) {    
+            elapsed_seconds = (std::chrono::system_clock::now() - time_start);
+            progress(elapsed_seconds.count(), i, gbt_tree->GetEntries());
+        }
     }
 
 
