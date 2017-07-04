@@ -81,10 +81,11 @@ combine2dat:  $(SRCDIR)combine2dat.C $(OBJ_FILES) $(HH_FILES)
 $(OUTOBJ)%.o: src/%.cc include/%.hh
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
+
 combineTPGBT:  $(SRCDIR)combineTPGBT.C $(OBJ_FILES) $(HH_FILES)
 	$(CXX) $(CXXFLAGS) -o combineTPGBT  $ $< $(GLIBS)
 	touch combineTPGBT
-
+	
 clean:
 	rm -f $(OUTOBJ)*.o
 	rm -rf *.dSYM
