@@ -1,5 +1,4 @@
 /* 
-HI ALEX, V1
 Program in C to combine TPFit data and GBT data into one file based on the BCIDS
 Written by Joseph Farah on June 19, 2017
 Last updated by [Joseph Farah] on: [June 27, 2017]
