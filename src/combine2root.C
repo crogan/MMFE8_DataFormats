@@ -93,7 +93,8 @@ vector<vector<int>> tp_Group_CH;
 vector<vector<int>> tp_Group_MMFE8;
 
 // Configurable - check these
-vector<int> MMFE8Order = {117,106,119,107,116,111,118,105};
+vector<int> MMFE8Order = {118,116,102,119,106,107,101,105};
+//vector<int> MMFE8Order = {117,106,119,107,116,111,118,105};
 int tcut = 10.;
 
 bool Initialize_MM(const string& filename);
@@ -232,18 +233,29 @@ int main(int argc, char* argv[]) {
 
   bool bgood = true;
   bool tpmatch = false;
+  double mmdiff = -999.;
   double tpdiff = -999.;
   if (!(g_troot || g_tdat)) {
     while(bgood && !(g_troot || g_tdat)){
-      if(sci_EventNum == mm_EventNum + g_offset){
+      mmdiff = -((mm_Time_sec+mm_Time_nsec/pow(10,9))-(sci_Time_sec + sci_Time_nsec/pow(10,9)));
+      if(sci_EventNum == mm_EventNum + g_offset && mmdiff < 1.5){
         WriteEvent();
         if(!NextMMEvent())
   	     bgood = false;
       } 
       else {
         if(sci_EventNum > mm_EventNum + g_offset){
-  	     if(!NextMMEvent())
-  	     bgood = false;
+          if(!NextMMEvent())
+            bgood = false;
+        } 
+        else if(sci_EventNum == mm_EventNum + g_offset && mmdiff > 1.5){
+          cout << endl;
+          cout << "Extra MM event @ " << mm_EventNum << endl;
+          cout << "Scintillator @ " << sci_EventNum << endl;
+          cout << endl;
+          g_offset--;
+          if(!NextMMEvent())
+            bgood = false;
         } 
         else {
   	     if(!NextSCINTEvent())
