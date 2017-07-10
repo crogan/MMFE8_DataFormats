@@ -87,8 +87,8 @@ combineTPGBT:  $(SRCDIR)combineTPGBT.C $(OBJ_FILES) $(HH_FILES)
 	touch combineTPGBT
 
 errgenGBT:  $(SRCDIR)errgenGBT.C $(OBJ_FILES) $(HH_FILES)
-        $(CXX) $(CXXFLAGS) -o errgenGBT  $ $< $(GLIBS)
-        touch errgenGBT
+	$(CXX) $(CXXFLAGS) -o errgenGBT  $ $< $(GLIBS)
+	touch errgenGBT
 
 
 
