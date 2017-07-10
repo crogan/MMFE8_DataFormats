@@ -1,7 +1,7 @@
 /* 
 Program in C to analye and compare the gbterr and good gbt entries for a given run
 Written by Joseph Farah on July 5, 2017
-Last updated by [Joseph Farah] on: [July 9, 2017]
+Last updated by [Joseph Farah] on: [July 10, 2017]
 
 Notes
 - 
