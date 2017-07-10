@@ -74,20 +74,26 @@ void progress(double time_diff, int nprocessed, int ntotal){
 
 
 
-int main()
+int main( int argc, char *argv[] )
 {   
-    std::cout << "Virtualbox test 1" << std::endl;
+
+    if( argc != 3 ) { std::cout << argv[0] << " needs two args. First arg is always GBT file, and second is GBTerr file.\n\n" << std::endl 
+        << "example usage: ./errgenGBT /path/to/gbtfile /path/to/gbterr/file" << std::endl; return 0; }
+    
     std::chrono::time_point<std::chrono::system_clock> time_start;
     std::chrono::duration<double> elapsed_seconds;
     time_start = std::chrono::system_clock::now();
 
+    const char* gbt_file_path = argv[1];
+    std::string gbterr_file_path = argv[2];
+    
     // Define a new canvas
     TApplication app("app", nullptr, nullptr);
     TCanvas *canvas = new TCanvas("c1", "testing");
     //change canvas height
     canvas->SetWindowSize(900, 600);
     canvas->Divide(1,1);
-    
+
     /////////////////////////////////////////////////////////////////
     //COMMENT THIS IF YOU WANT THE GRAPH TO BE ON A LINEAR/LOG SCALE//
     /////////////////////////////////////////////////////////////////
@@ -103,13 +109,13 @@ int main()
     TH1 *hist1 = new TH1D("hist1", "Error in GBT packets (red) and successful packets (white) vs time)", NUM_OF_CRAP, 0, 5);
     TH1 *hist2 = new TH1D("hist2", "Error in GBT packets (red) and successful packets (white) vs time)", NUM_OF_CRAP, 0, 5);
 
-
+    std::cout << "1" << std::endl;
     std::vector<std::string>    exploded_line;
     std::string                 line;
     std::ifstream               gbterr_file;
-
-    gbterr_file.open("gbterr.txt");
-
+    std::cout << "2" << std::endl;
+    gbterr_file.open(gbterr_file_path);
+    std::cout << 3 << std::endl;
     // creation of the first histogram
     if(gbterr_file.is_open())
     {
@@ -134,7 +140,7 @@ int main()
     time_start = std::chrono::system_clock::now();
 
     // create new fileobject for GBT
-    TFile *gbt_file_object = new TFile("Run3526_GBT_decode.root");
+    TFile *gbt_file_object = new TFile(gbt_file_path);
     // pull the tree from the file
     TTree *gbt_tree = (TTree*)gbt_file_object->Get("GBT_data");
 
