@@ -85,7 +85,13 @@ $(OUTOBJ)%.o: src/%.cc include/%.hh
 combineTPGBT:  $(SRCDIR)combineTPGBT.C $(OBJ_FILES) $(HH_FILES)
 	$(CXX) $(CXXFLAGS) -o combineTPGBT  $ $< $(GLIBS)
 	touch combineTPGBT
-	
+
+errgenGBT:  $(SRCDIR)errgenGBT.C $(OBJ_FILES) $(HH_FILES)
+        $(CXX) $(CXXFLAGS) -o errgenGBT  $ $< $(GLIBS)
+        touch errgenGBT
+
+
+
 clean:
 	rm -f $(OUTOBJ)*.o
 	rm -rf *.dSYM
