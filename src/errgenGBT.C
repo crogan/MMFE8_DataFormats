@@ -101,10 +101,7 @@ int main( int argc, char *argv[] )
 
     
     const int   NUM_OF_CRAP = 1979885/1000;
-    int         bin_length = 0.04;
-    int         i;
     int         line_num = 0;
-    double      x_val, y_val, hr, sc;
 
     TH1 *hist1 = new TH1D("hist1", "Error in GBT packets (red) and successful packets (white) vs time)", NUM_OF_CRAP, 0, 5);
     TH1 *hist2 = new TH1D("hist2", "Error in GBT packets (red) and successful packets (white) vs time)", NUM_OF_CRAP, 0, 5);
