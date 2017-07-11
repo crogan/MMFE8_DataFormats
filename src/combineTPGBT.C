@@ -1,7 +1,7 @@
 /* 
 Program in C to combine TPFit data and GBT data into one file based on the BCIDS
 Written by Joseph Farah on June 19, 2017
-Last updated by [Joseph Farah] on: [June 27, 2017]
+Last updated by [Joseph Farah] on: [July 10, 2017]
 
 Notes
 - for some reason this code causes the root intepreter to segfault when .q is run
@@ -242,6 +242,8 @@ int main( int argc, char *argv[] )
         gbtbcids.clear();
         gtmp = gEventNum;
 
+        if(i>10000) { break; }
+
         // get the exact tiem of the event in nanoseconds by adding the time
         // in seconds to the time in nanoseconds
         gbttime = gbtTime_sec + gbtTime_nsec/pow(10.,9);
@@ -346,10 +348,10 @@ int main( int argc, char *argv[] )
                             // increment nmatch too add to the lsit of entries
                             // that have corresponding trigger events
                                 nmatch += 1;   
-                                t_tpfit_MMFE8->push_back(tpmmfes[counter1]);
-                                t_tpfit_VMM->push_back(tpvmms[counter1]);
-                                t_tpfit_CH->push_back(tpchs[counter1]);
-                                t_tpfit_BCID->push_back(gbtbcids[counter1]); 
+                                t_tpfit_MMFE8->push_back(tpmmfes[counter2]);
+                                t_tpfit_VMM->push_back(tpvmms[counter2]);
+                                t_tpfit_CH->push_back(tpchs[counter2]);
+                                t_tpfit_BCID->push_back(gbtbcids[counter2]); 
                             }
 
                         }
