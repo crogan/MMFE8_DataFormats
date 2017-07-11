@@ -242,7 +242,7 @@ int main( int argc, char *argv[] )
         gbtbcids.clear();
         gtmp = gEventNum;
 
-        if(i>10000) { break; }
+        // if(i>10000) { break; }
 
         // get the exact tiem of the event in nanoseconds by adding the time
         // in seconds to the time in nanoseconds
