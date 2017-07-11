@@ -215,7 +215,7 @@ int main(int argc, char* argv[]) {
   std::cout << std::endl;
   ifile.close();
 
-  tree->Write();
+  tree->Write("", TObject::kOverwrite);
   fout->Close();
 
   return 0;
