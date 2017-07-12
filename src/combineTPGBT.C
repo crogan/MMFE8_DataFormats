@@ -16,6 +16,7 @@ Notes
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <typeinfo>
 #include <chrono>
 #include <string>
 #include <TROOT.h>
@@ -53,15 +54,31 @@ int main( int argc, char *argv[] )
 {
     std::cout << "TIME BEGIN" << std::endl;
     get_time();
-    // check the number of args, it should be 3 for proper execution
-    // there will always be 4 args because the file name is the first arg
-    if( argc != 4 ) { std::cout << argv[0] << " needs three args. First arg is always GBT file, second is TPfit file, and third is the combined output file.\n\n" << std::endl 
-        << "example usage: ./combineTPGBT /path/to/gbtfile /path/to/tpfit/file /path/to/combined/output/file" << std::endl; return 0; }
 
-    // make all the filename strings constants to use in the TFile constructor
-    const char* gfile = argv[1];
-    const char* tfile = argv[2];
-    const char* ofile = argv[3];
+    char* tmp1;
+    char* tmp2;
+    char* tmp3;
+    char* tmp4;
+
+    // argument stuff
+    for(int i = 1; i < argc; i++) {
+        if (i + 1 != argc){
+            if (strcmp(argv[i], "-g") == 0)      {  tmp1 = argv[i + 1]; i++;   } 
+            else if (strcmp(argv[i], "-t") == 0) {  tmp2 = argv[i + 1]; i++;   } 
+            else if (strcmp(argv[i], "-o") == 0) {  tmp3 = argv[i + 1]; i++;   }
+            else if (strcmp(argv[i], "-r") == 0) {  tmp4 = argv[i + 1]; i++;   }
+            else {
+                std::cout << "This argument caused an error: " << argv[i] << std::endl;
+                std::cout << "Not enough or invalid arguments, please try again.\n";
+                return 0;
+            }
+        }
+    }
+
+    const char* gfile =     tmp1;
+    const char* tfile =     tmp2;
+    const char* ofile =     tmp3;
+    const char* run_num =   tmp4;
 
     std::cout << "File arguments provided: ";
     std::cout << gfile << " " << tfile <<  " " << ofile << std::endl;
@@ -71,7 +88,6 @@ int main( int argc, char *argv[] )
     TFile *gbt_file_object = new TFile(gfile);
     // pull the tree from the file
     TTree *gbt_tree = (TTree*)gbt_file_object->Get("GBT_data");    
-    std::cout << gbt_tree << std::endl;
     
     // do the same thing now with the TPfit file
     // create new file object for TPfit
@@ -103,6 +119,7 @@ int main( int argc, char *argv[] )
     // this is going to require me initiliazing various variables to use
     // as addresses, a TTree, and the branches themsleves
     int                 t_eventnum;
+    int                 t_gbteventnum;
     int                 t_cntr;
     int                 t_timesec;
     int                 t_timensec;
@@ -115,6 +132,7 @@ int main( int argc, char *argv[] )
     std::vector<int>    *t_tpfit_BCID = 0;
 
     combdata->Branch("EventNum", &t_eventnum);
+    combdata->Branch("EventNumGBT", &t_gbteventnum);
     combdata->Branch("cntr",  &t_cntr);
     combdata->Branch("Time_sec",  &t_timesec);
     combdata->Branch("Time_nsec",  &t_timensec);    
@@ -156,7 +174,7 @@ int main( int argc, char *argv[] )
 
 
     // tpfit tree address declaration, FFS initialize your pointers
-    int EventNum, nevent;
+    int EventNum, nevent, gbt_event_num;
     int tpTime_sec;
     int tpTime_nsec;
     int BCID, bcid;
@@ -221,8 +239,8 @@ int main( int argc, char *argv[] )
 
 
 
-    // board IPs go here, note its an array not a vector
-    int boards[] = {118,116,102,119,106,107,117,105};
+    // board IPs go here, its a vector, HAVE I MADE SENPAI PROUD
+    std::vector<int> boards = {118,116,102,119,106,107,117,105};
     
     //loop through the GBT set
     //tpfit_tree->Print();
@@ -241,8 +259,6 @@ int main( int argc, char *argv[] )
         gbtchs.clear();
         gbtbcids.clear();
         gtmp = gEventNum;
-
-        // if(i>10000) { break; }
 
         // get the exact tiem of the event in nanoseconds by adding the time
         // in seconds to the time in nanoseconds
@@ -269,6 +285,11 @@ int main( int argc, char *argv[] )
                 gbtchs.push_back(0);
                 gbtbcids.push_back(0);
             }
+            if(std::find(boards.begin(), boards.end(), gbtmmfes[counter]) == boards.end())
+            {
+                std::cout << "WARNING! BOARD IP IN DATA NOT FOUND IN IP LIST" << std::endl;
+                return 0;
+            }
         }
 
     // begin trying to align the TPfit packet with the GBT equivalent
@@ -288,6 +309,7 @@ int main( int argc, char *argv[] )
 
         // start declaring all the track information from tpfittree
             nevent = EventNum;
+            gbt_event_num = gEventNum;
 
         //  std::cout << "Eventnum " << nevent <<  std::endl; 
             tpfittime = tpTime_sec + tpTime_nsec/pow(10.,9);
@@ -364,6 +386,7 @@ int main( int argc, char *argv[] )
                     t_tpfit_n = nhit;
                     t_cntr = spec_cntr;
                     t_eventnum = nevent;
+                    t_gbteventnum = gbt_event_num;
                     t_timesec = tpTime_sec;
                     t_timensec = tpTime_nsec;
 
