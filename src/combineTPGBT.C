@@ -61,6 +61,11 @@ int main( int argc, char *argv[] )
     char* tmp4;
 
     // argument stuff
+    if(argc != 9 ){
+        std::cout << "Not enough or invalid arguments, please try again.\n";
+        std::cout << "Example syntax: ./combineTPGBT -g Run3522_GBT_decoded.root -t Run3522_FIT_decoded.root -o combined.root -r 3522" << std::endl;
+        return 0;
+    }
     for(int i = 1; i < argc; i++) {
         if (i + 1 != argc){
             if (strcmp(argv[i], "-g") == 0)      {  tmp1 = argv[i + 1]; i++;   } 
@@ -70,6 +75,7 @@ int main( int argc, char *argv[] )
             else {
                 std::cout << "This argument caused an error: " << argv[i] << std::endl;
                 std::cout << "Not enough or invalid arguments, please try again.\n";
+                std::cout << "Example syntax: ./combineTPGBT -g Run3522_GBT_decoded.root -t Run3522_FIT_decoded.root -o combined.root -r 3522" << std::endl;
                 return 0;
             }
         }
