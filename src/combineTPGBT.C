@@ -1,4 +1,4 @@
-/* 
+/*/////////////////////////////////////////////////////////////////////////////////////////
 Program in C to combine TPFit data and GBT data into one file based on the BCIDS
 Written by Joseph Farah on June 19, 2017
 Last updated by [Joseph Farah] on: [July 10, 2017]
@@ -10,7 +10,7 @@ Notes
     value with gbtMMFE8->at(0)
 - the above notes should be outdated as this is now a standalone script and not a root macro
 - just fucking die --KH
-*/
+///////////////////////////////////////////////////////////////////////////////////////////*/
 
 // header imports
 #include <iostream>
@@ -24,11 +24,12 @@ Notes
 #include <TFile.h>
 #include "TSystem.h"
 
-#define TRUE 1
+#define TRUE  1
 #define FALSE 0
 
 
-void progress(double time_diff, int nprocessed, int ntotal){
+void progress(double time_diff, int nprocessed, int ntotal)
+{
   double rate = (double)(nprocessed+1)/time_diff;
   std::cout.precision(1);
   std::cout << "\r > " << nprocessed << " / " << ntotal 
@@ -81,10 +82,10 @@ int main( int argc, char *argv[] )
         }
     }
 
-    const char* gfile =     tmp1;
-    const char* tfile =     tmp2;
-    const char* ofile =     tmp3;
-    const char* run_num =   tmp4;
+    const char* gfile   = tmp1;
+    const char* tfile   = tmp2;
+    const char* ofile   = tmp3;
+    const char* run_num = tmp4;
 
     std::cout << "File arguments provided: ";
     std::cout << gfile << " " << tfile <<  " " << ofile << std::endl;
@@ -98,8 +99,11 @@ int main( int argc, char *argv[] )
     // do the same thing now with the TPfit file
     // create new file object for TPfit
     TFile *tpfit_file_object = new TFile(tfile);
-    // pull the tpfit tree fromt he file
+    
+    // pull the tpfit tree fromt the file
     TTree *tpfit_tree = (TTree*)tpfit_file_object->Get("TPfit_data");
+    
+    // check to make sure the TTrees exist
     if (!gbt_tree){
         std::cout << "Error: GBT tree is a null pointer!" << std::endl;
         return 0;
@@ -130,7 +134,7 @@ int main( int argc, char *argv[] )
     int                 t_timesec;
     int                 t_timensec;
     int                 t_bcid;
-    float                 t_mxlocal;
+    float               t_mxlocal;
     int                 t_tpfit_n;
     std::vector<int>    *t_tpfit_VMM = 0;
     std::vector<int>    *t_tpfit_CH = 0;
@@ -180,13 +184,19 @@ int main( int argc, char *argv[] )
 
 
     // tpfit tree address declaration, FFS initialize your pointers
-    int EventNum, nevent, gbt_event_num;
-    int tpTime_sec;
-    int tpTime_nsec;
-    int BCID, bcid;
-    float  mxlocal, mxloc;
-    int tpfit_n, nhit;
-    int cntr, spec_cntr;
+    int                 EventNum
+    int                 nevent
+    int                 gbt_event_num;
+    int                 tpTime_sec;
+    int                 tpTime_nsec;
+    int                 BCID
+    int                 bcid;
+    float               mxlocal
+    float               mxloc;
+    int                 tpfit_n
+    int                 nhit;
+    int                 cntr
+    int                 spec_cntr;
     std::vector<int>    *tpfit_MMFE8 = 0;
     std::vector<int>    *tpfit_VMM = 0;
     std::vector<int>    *tpfit_CH = 0;
@@ -204,25 +214,26 @@ int main( int argc, char *argv[] )
     tpfit_tree->SetBranchAddress("tpfit_CH", &tpfit_CH);
 
     // initialize any variables that will be used within the loop
-    double gbttime;
-    double tpfittime;
-    double time_difference;
-    int i = 0;
-    int counter = 0;
-    int j;
-    int currifitpk = 0;
-    int gtmp;
-    // vectors that need to be created that will hold everything
-    const int GBT_COORDINATE_LENGTH = 9;
-    std::vector<int> gbtmmfes = {};
-    std::vector<int> gbtvmms = {};
-    std::vector<int> gbtchs = {};
-    std::vector<int> gbtbcids = {};
+    double  gbttime;
+    double  tpfittime;
+    double  time_difference;
+    int     i = 0;
+    int     counter = 0;
+    int     j;
+    int     currifitpk = 0;
+    int     gtmp;
 
-    std::vector<int> tpmmfes ={};
-    std::vector<int> tpvmms = {};
-    std::vector<int> tpchs = {};
-    std::vector<int> tpbcids = {};
+    // vectors that need to be created that will hold everything
+    const int           GBT_COORDINATE_LENGTH = 9;
+    std::vector<int>    gbtmmfes = {};
+    std::vector<int>    gbtvmms = {};
+    std::vector<int>    gbtchs = {};
+    std::vector<int>    gbtbcids = {};
+
+    std::vector<int>    tpmmfes ={};
+    std::vector<int>    tpvmms = {};
+    std::vector<int>    tpchs = {};
+    std::vector<int>    tpbcids = {};
 
     // this vector will store the hit information for each track
     // use i to compare to the gbt data
@@ -244,9 +255,9 @@ int main( int argc, char *argv[] )
     tp_tmp_hit_storage.reserve(3);
 
 
+    // board IPs go here, its a vector, HAVE I MADE SENPAI PROUD
     std::vector<int> boards;
 
-    // board IPs go here, its a vector, HAVE I MADE SENPAI PROUD
     int run_num_int = std::stoi(run_num);
     std::cout << "run num: " << run_num_int << std::endl;
     if     (run_num_int >= 3515 && run_num_int <=3517) { boards = {105, 118, 107, 106, 119, 117, 116, 111}; }
@@ -287,7 +298,7 @@ int main( int argc, char *argv[] )
         // check to see if there are any boards that did not fire, if thats the case
         // replace their values with zeros by adding a new "event" to the array
         for(counter=0; counter<8; counter++)
-        {;
+        {
             if( std::find(gbtMMFE8->begin(), gbtMMFE8->end(), boards[counter])==gbtMMFE8->end() ) 
             {
                 gbtmmfes.push_back(boards[counter]);
@@ -302,11 +313,11 @@ int main( int argc, char *argv[] )
             }
         }
 
-    // begin trying to align the TPfit packet with the GBT equivalent
+        // begin trying to align the TPfit packet with the GBT equivalent
         j = currifitpk;
         while(TRUE) {
 
-        //get trigger process across #j, whatever j happens to be
+            //get trigger process across #j, whatever j happens to be
             int nmatch = 0;
             tpfit_tree->GetEntry(j);
             tpmmfes.clear();
@@ -314,21 +325,21 @@ int main( int argc, char *argv[] )
             tpchs.clear();
             tpbcids.clear();
 
-        // if j is greater than the number of things in the fit tp file, break the loop
+            // if j is greater than the number of things in the fit tp file, break the loop
             if( j == nfit ) { break; }
 
-        // start declaring all the track information from tpfittree
+            // start declaring all the track information from tpfittree
             nevent = EventNum;
             gbt_event_num = gEventNum;
 
-        //  std::cout << "Eventnum " << nevent <<  std::endl; 
+            //  std::cout << "Eventnum " << nevent <<  std::endl; 
             tpfittime = tpTime_sec + tpTime_nsec/pow(10.,9);
             bcid = BCID;
             mxloc = mxlocal;
             nhit = tpfit_n;
             spec_cntr = cntr;
 
-        // create the vectors that will hold all the TPfit event information
+            // create the vectors that will hold all the TPfit event information
             for(counter = 0; counter < tpfit_MMFE8->size(); counter++)
             {
                 tpmmfes.push_back(tpfit_MMFE8->at(counter));
@@ -338,26 +349,26 @@ int main( int argc, char *argv[] )
             }
             counter = 0;
 
-        // check the time difference betwen the tp and gbt packet
-        // they should ideally be very close together, some difference is acceptable
-        // just fucking die --KH but if the difference is greater than 0.2 we are misaligning the data
+            // check the time difference betwen the tp and gbt packet
+            // they should ideally be very close together, some difference is acceptable
+            // just fucking die --KH but if the difference is greater than 0.2 we are misaligning the data
             time_difference = tpfittime - gbttime;
 
-        // break if we've gone to far
+            // break if we've gone to far
             if( time_difference>0.2 ) { break; }
 
-        // if the time difference between the tp packet and the gbt packet
-        // is within reasonable error, do the following
+            // if the time difference between the tp packet and the gbt packet
+            // is within reasonable error, do the following
             time_difference = fabs(time_difference);
 
-        // if the time difference is within reasonable error
+            // if the time difference is within reasonable error
             if( time_difference<0.2 )
             {
-            // is the time of the tpfit packet in the list of the gbt packet BCIDS
-            // we created earlier? if so, continue
+                // is the time of the tpfit packet in the list of the gbt packet BCIDS
+                // we created earlier? if so, continue
                 if( std::find(gbtbcids.begin(), gbtbcids.end(), bcid) != gbtbcids.end() )
                 {
-                // fill a vector with the single hit information to compare to the gbt stuff
+                    // fill a vector with the single hit information to compare to the gbt stuff
                     for(int counter2=0; counter2<tpmmfes.size(); counter2++)
                     {
                         tp_tmp_hit_storage.clear();
@@ -372,13 +383,13 @@ int main( int argc, char *argv[] )
                             gbt_tmp_hit_storage.push_back(gbtmmfes[counter1]);
                             gbt_tmp_hit_storage.push_back(gbtvmms[counter1]);
                             gbt_tmp_hit_storage.push_back(gbtchs[counter1]);
-                        // are the coordinates int eh gbt set the same as the 
-                        // coordinates recorded by the trigger process? if yes
-                        // continue, if no, don't do anything
+                            // are the coordinates int eh gbt set the same as the 
+                            // coordinates recorded by the trigger process? if yes
+                            // continue, if no, don't do anything
                             if( gbt_tmp_hit_storage == tp_tmp_hit_storage )
                             {
-                            // increment nmatch too add to the lsit of entries
-                            // that have corresponding trigger events
+                                // increment nmatch too add to the lsit of entries
+                                // that have corresponding trigger events
                                 nmatch += 1;   
                                 t_tpfit_MMFE8->push_back(tpmmfes[counter2]);
                                 t_tpfit_VMM->push_back(tpvmms[counter2]);
@@ -390,15 +401,14 @@ int main( int argc, char *argv[] )
 
                     }
 
-                // update the combined branches with all the new data
-                    t_mxlocal = mxloc;
-                    t_bcid = BCID;
-                    t_tpfit_n = nhit;
-                    t_cntr = spec_cntr;
-                    t_eventnum = nevent;
-                    
-                    t_timesec = tpTime_sec;
-                    t_timensec = tpTime_nsec;
+                    // update the combined branches with all the new data
+                    t_mxlocal   = mxloc;
+                    t_bcid      = BCID;
+                    t_tpfit_n   = nhit;
+                    t_cntr      = spec_cntr;
+                    t_eventnum  = nevent;
+                    t_timesec   = tpTime_sec;
+                    t_timensec  = tpTime_nsec;
 
                     if( nmatch == nhit )
                     {
@@ -414,25 +424,24 @@ int main( int argc, char *argv[] )
                         t_tpfit_BCID->push_back(-1); 
                         currifitpk = j + 1;
                         combdata->Fill();
-
                     }
-                // clear the current branch entries to make room for the next ones
+
+                    // clear the current branch entries to make room for the next ones
                     t_tpfit_MMFE8->clear();
                     t_tpfit_VMM->clear();
                     t_tpfit_CH->clear();
                     t_tpfit_BCID->clear();
                 }
             }
-        // increment j, important to know where in the loop this is
+
             j++;
-
-        // UNCOMMENT THIS IF YOU WANT TO ESTIMATE HOW LONG THE PROGRAM WILL TAKE TO FINISH  
-
         }
-    // increment i, if you're messing with this make sure you know which
-    // loop its incrementing
+
         i++;
-        if(i%1000==0) {    
+
+        // time stuff
+        if(i%1000==0) 
+        {    
             elapsed_seconds = (std::chrono::system_clock::now() - time_start);
             progress(elapsed_seconds.count(), i, gbt_tree->GetEntries());
         }
