@@ -238,12 +238,16 @@ int main( int argc, char *argv[] )
     tp_tmp_hit_storage.reserve(3);
 
 
+    std::vector<int> boards;
 
     // board IPs go here, its a vector, HAVE I MADE SENPAI PROUD
-    std::vector<int> boards = {118,116,102,119,106,107,117,105};
-    
-    //loop through the GBT set
-    //tpfit_tree->Print();
+    int run_num_int = std::stoi(run_num);
+    std::cout << "run num: " << run_num_int << std::endl;
+    if     (run_num_int >= 3515 && run_num_int <=3517) { boards = {105, 118, 107, 106, 119, 117, 116, 111}; }
+    else if(run_num_int >= 3518 && run_num_int <=3523) { boards = {105, 117, 107, 106, 119, 102, 116, 118}; }
+    else if(run_num_int == 3524)                       { boards = {105, 101, 107, 106, 119, 102, 116, 118}; }
+    else if(run_num_int == 3525)                       { boards = {105, 101, 107, 106, 119, 120, 116, 118}; }
+    else { std::cout << "ERROR: Board configuration unknown for run number " << run_num_int << std::endl; return 0;}
 
 
     //progress bar stuff
