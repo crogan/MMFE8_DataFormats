@@ -390,12 +390,22 @@ int main( int argc, char *argv[] )
                     t_tpfit_n = nhit;
                     t_cntr = spec_cntr;
                     t_eventnum = nevent;
-                    t_gbteventnum = gbt_event_num;
+                    
                     t_timesec = tpTime_sec;
                     t_timensec = tpTime_nsec;
 
                     if( nmatch == nhit )
                     {
+                        currifitpk = j + 1;
+                        t_gbteventnum = gbt_event_num;
+                        combdata->Fill();
+
+                    }
+                    else if(nmatch != nhit)
+                    {
+                        t_gbteventnum = -1;
+                        t_tpfit_BCID->clear(); 
+                        t_tpfit_BCID->push_back(-1); 
                         currifitpk = j + 1;
                         combdata->Fill();
 
