@@ -184,18 +184,18 @@ int main( int argc, char *argv[] )
 
 
     // tpfit tree address declaration, FFS initialize your pointers
-    int                 EventNum
-    int                 nevent
+    int                 EventNum;
+    int                 nevent;
     int                 gbt_event_num;
     int                 tpTime_sec;
     int                 tpTime_nsec;
-    int                 BCID
+    int                 BCID;
     int                 bcid;
-    float               mxlocal
+    float               mxlocal;
     float               mxloc;
-    int                 tpfit_n
+    int                 tpfit_n;
     int                 nhit;
-    int                 cntr
+    int                 cntr;
     int                 spec_cntr;
     std::vector<int>    *tpfit_MMFE8 = 0;
     std::vector<int>    *tpfit_VMM = 0;
