@@ -130,6 +130,8 @@ int main( int argc, char *argv[] )
     // as addresses, a TTree, and the branches themsleves
     int                 t_eventnum;
     int                 t_gbteventnum;
+    int                 t_gts;
+    int                 t_gtns;
     int                 t_cntr;
     int                 t_timesec;
     int                 t_timensec;
@@ -143,6 +145,8 @@ int main( int argc, char *argv[] )
 
     combdata->Branch("EventNum", &t_eventnum);
     combdata->Branch("EventNumGBT", &t_gbteventnum);
+    combdata->Branch("gbtTime_sec", t_gts);
+    combdata->Branch("gbtTime_nsec", t_gtns);
     combdata->Branch("cntr",  &t_cntr);
     combdata->Branch("Time_sec",  &t_timesec);
     combdata->Branch("Time_nsec",  &t_timensec);    
@@ -184,18 +188,18 @@ int main( int argc, char *argv[] )
 
 
     // tpfit tree address declaration, FFS initialize your pointers
-    int                 EventNum
-    int                 nevent
+    int                 EventNum;
+    int                 nevent;
     int                 gbt_event_num;
     int                 tpTime_sec;
     int                 tpTime_nsec;
-    int                 BCID
+    int                 BCID;
     int                 bcid;
-    float               mxlocal
+    float               mxlocal;
     float               mxloc;
-    int                 tpfit_n
+    int                 tpfit_n;
     int                 nhit;
-    int                 cntr
+    int                 cntr;
     int                 spec_cntr;
     std::vector<int>    *tpfit_MMFE8 = 0;
     std::vector<int>    *tpfit_VMM = 0;
@@ -404,6 +408,8 @@ int main( int argc, char *argv[] )
                     // update the combined branches with all the new data
                     t_mxlocal   = mxloc;
                     t_bcid      = BCID;
+                    t_gts       = gbtTime_sec;
+                    t_gtns      = gbtTime_nsec;
                     t_tpfit_n   = nhit;
                     t_cntr      = spec_cntr;
                     t_eventnum  = nevent;
