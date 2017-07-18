@@ -65,35 +65,41 @@ int main( int argc, char *argv[] )
 
     int has_limit = 0;
     int limit = 0;
-
+    int check_for_limit = 0;
+    
     // argument stuff
-    if(argc != 11 ){
-        std::cout << "Not enough or invalid arguments, please try again.\n";
+    if(argc != 11 && argc != 9){
+        std::cout << "!Not enough or invalid arguments, please try again.\n";
         std::cout << "Example syntax: ./combineTPGBT -g Run3522_GBT_decoded.root -t Run3522_FIT_decoded.root -o combined.root -r 3522" << std::endl;
         return 0;
     }
+    if(argc == 11) { check_for_limit = 1; }
     for(int i = 1; i < argc; i++) {
         if (i + 1 != argc)  {
             if (strcmp(argv[i], "-g") == 0)      {  tmp1 = argv[i + 1]; i++;   } 
             else if (strcmp(argv[i], "-t") == 0) {  tmp2 = argv[i + 1]; i++;   } 
             else if (strcmp(argv[i], "-o") == 0) {  tmp3 = argv[i + 1]; i++;   }
             else if (strcmp(argv[i], "-r") == 0) {  tmp4 = argv[i + 1]; i++;   }
-            else if (strcmp(argv[i], "-l") == 0) {
-                std::cout << argv[i+1] << std::endl;
-                if(strcmp(argv[i+1], "0")==0) {
-                    continue;
+            else {
+                if(check_for_limit == 1) {
+                    if (strcmp(argv[i], "-l") == 0) {
+                        if(strcmp(argv[i+1], "0")==0) {
+                            continue;
+                        }
+                        else {
+                            has_limit = 1;
+                            tmp5 = argv[i+1];
+                        }
+                    }
                 }
                 else {
-                    has_limit = 1;
-                    tmp5 = argv[i+1];
+                    std::cout << "This argument caused an error: " << argv[i] << std::endl;
+                    std::cout << "Not enough or invalid arguments, please try again.\n";
+                    std::cout << "Example syntax: ./combineTPGBT -g Run3522_GBT_decoded.root -t Run3522_FIT_decoded.root -o combined.root -r 3522 -l 0" << std::endl;
+                    return 0;
                 }
             }
-            else {
-                std::cout << "This argument caused an error: " << argv[i] << std::endl;
-                std::cout << "Not enough or invalid arguments, please try again.\n";
-                std::cout << "Example syntax: ./combineTPGBT -g Run3522_GBT_decoded.root -t Run3522_FIT_decoded.root -o combined.root -r 3522 -l 0" << std::endl;
-                return 0;
-            }
+            
         }
     }
 
