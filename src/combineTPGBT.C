@@ -27,6 +27,7 @@ Notes
 #define TRUE  1
 #define FALSE 0
 
+#define pass ;
 
 void progress(double time_diff, int nprocessed, int ntotal)
 {
@@ -60,25 +61,45 @@ int main( int argc, char *argv[] )
     char* tmp2;
     char* tmp3;
     char* tmp4;
+    char* tmp5;
 
+    int has_limit = 0;
+    int limit = 0;
+    int check_for_limit = 0;
+    
     // argument stuff
-    if(argc != 9 ){
-        std::cout << "Not enough or invalid arguments, please try again.\n";
+    if(argc != 11 && argc != 9){
+        std::cout << "!Not enough or invalid arguments, please try again.\n";
         std::cout << "Example syntax: ./combineTPGBT -g Run3522_GBT_decoded.root -t Run3522_FIT_decoded.root -o combined.root -r 3522" << std::endl;
         return 0;
     }
+    if(argc == 11) { check_for_limit = 1; }
     for(int i = 1; i < argc; i++) {
-        if (i + 1 != argc){
+        if (i + 1 != argc)  {
             if (strcmp(argv[i], "-g") == 0)      {  tmp1 = argv[i + 1]; i++;   } 
             else if (strcmp(argv[i], "-t") == 0) {  tmp2 = argv[i + 1]; i++;   } 
             else if (strcmp(argv[i], "-o") == 0) {  tmp3 = argv[i + 1]; i++;   }
             else if (strcmp(argv[i], "-r") == 0) {  tmp4 = argv[i + 1]; i++;   }
             else {
-                std::cout << "This argument caused an error: " << argv[i] << std::endl;
-                std::cout << "Not enough or invalid arguments, please try again.\n";
-                std::cout << "Example syntax: ./combineTPGBT -g Run3522_GBT_decoded.root -t Run3522_FIT_decoded.root -o combined.root -r 3522" << std::endl;
-                return 0;
+                if(check_for_limit == 1) {
+                    if (strcmp(argv[i], "-l") == 0) {
+                        if(strcmp(argv[i+1], "0")==0) {
+                            continue;
+                        }
+                        else {
+                            has_limit = 1;
+                            tmp5 = argv[i+1];
+                        }
+                    }
+                }
+                else {
+                    std::cout << "This argument caused an error: " << argv[i] << std::endl;
+                    std::cout << "Not enough or invalid arguments, please try again.\n";
+                    std::cout << "Example syntax: ./combineTPGBT -g Run3522_GBT_decoded.root -t Run3522_FIT_decoded.root -o combined.root -r 3522 -l 0" << std::endl;
+                    return 0;
+                }
             }
+            
         }
     }
 
@@ -86,6 +107,13 @@ int main( int argc, char *argv[] )
     const char* tfile   = tmp2;
     const char* ofile   = tmp3;
     const char* run_num = tmp4;
+
+    if(has_limit != 0)
+    {
+        limit = std::stoi(tmp5);
+        std::cout << "limit" << limit << std::endl;
+    }
+
 
     std::cout << "File arguments provided: ";
     std::cout << gfile << " " << tfile <<  " " << ofile << std::endl;
@@ -288,7 +316,7 @@ int main( int argc, char *argv[] )
         // get the exact tiem of the event in nanoseconds by adding the time
         // in seconds to the time in nanoseconds
         gbttime = gbtTime_sec + gbtTime_nsec/pow(10.,9);
-
+        if(has_limit != 0 && i > limit) {  break;  }
         /* creating a list containing the coordinates for each part of the event*/
         for(counter = 0; counter < gbtMMFE8->size(); counter++)
         {

@@ -76,15 +76,18 @@ void progress(double time_diff, int nprocessed, int ntotal){
 
 int main( int argc, char *argv[] )
 {   
-
+    // check to make sure all args are present
     if( argc != 3 ) { std::cout << argv[0] << " needs two args. First arg is always GBT file, and second is GBTerr file.\n\n" << std::endl 
         << "example usage: ./errgenGBT /path/to/gbtfile /path/to/gbterr/file" << std::endl; return 0; }
     
+    // do timing stuff for Alex's progress bar
     std::chrono::time_point<std::chrono::system_clock> time_start;
     std::chrono::duration<double> elapsed_seconds;
     time_start = std::chrono::system_clock::now();
 
+    // define the path to the gbt file filled with SUCCESSFUL ENTRIES
     const char* gbt_file_path = argv[1];
+    // define the pat to the gbt ERR file
     std::string gbterr_file_path = argv[2];
     
     // Define a new canvas
@@ -100,32 +103,38 @@ int main( int argc, char *argv[] )
     // canvas->SetLogy();
 
     
+    // these values will be used in the histogram
     const int   NUM_OF_CRAP = 1979885/1000;
     int         line_num = 0;
 
+    // define the two histograms (preferably with high levels of precision)
     TH1 *hist1 = new TH1D("hist1", "Error in GBT packets (red) and successful packets (white) vs time)", NUM_OF_CRAP, 0, 5);
     TH1 *hist2 = new TH1D("hist2", "Error in GBT packets (red) and successful packets (white) vs time)", NUM_OF_CRAP, 0, 5);
 
-    std::cout << "1" << std::endl;
+    // open the GBT err file constructor
     std::vector<std::string>    exploded_line;
     std::string                 line;
     std::ifstream               gbterr_file;
-    std::cout << "2" << std::endl;
     gbterr_file.open(gbterr_file_path);
-    std::cout << 3 << std::endl;
+
     // creation of the first histogram
+    // cycle throught the gbt err file
     if(gbterr_file.is_open())
     {
         while(getline(gbterr_file, line))
         {   
             line_num++;
+            // split each line into its components
             std::stringstream ss(line);
             line.erase(0,1);
             line.erase(line.size()-1);
             exploded_line = explode(line, ',');
 
+            // grab a value for the point in time of the error packet
             double rawtime = (stod(exploded_line[2])/(pow(10,9))-1498073258.177727)/86400.0;
             hist1->Fill(rawtime);
+
+            // progress bar stuff
             if(line_num%10000==0) {    
                 elapsed_seconds = (std::chrono::system_clock::now() - time_start);
                 progress(elapsed_seconds.count(), line_num, 1979885);
@@ -134,6 +143,7 @@ int main( int argc, char *argv[] )
         }
     }
 
+    // restart the progress bar for the next loop
     time_start = std::chrono::system_clock::now();
 
     // create new fileobject for GBT
@@ -141,6 +151,7 @@ int main( int argc, char *argv[] )
     // pull the tree from the file
     TTree *gbt_tree = (TTree*)gbt_file_object->Get("GBT_data");
 
+    // if the gbt tree doesn't exist, you probably have the wrong file. abort!
     if (!gbt_tree){
         std::cout << "Error: GBT tree is a null pointer!" << std::endl;
         return 0;
@@ -179,12 +190,14 @@ int main( int argc, char *argv[] )
 
     while(gbt_tree->GetEntry(counter++))
     {
+        // snag the time from the gbt packet
         gbttime = (double)(gbtTime_sec) + gbtTime_nsec/pow(10.,9)-1498073258.177727;
         gbttime = gbttime/86400.0;
-        // std::cout << std::fixed << gbttime << std::endl;;
 
+        // fill the histogram
         hist2->Fill(gbttime);
 
+        // progress bar stuff
         if(counter%10000==0) {    
             elapsed_seconds = (std::chrono::system_clock::now() - time_start);
             progress(elapsed_seconds.count(), counter, gbt_tree->GetEntries());
