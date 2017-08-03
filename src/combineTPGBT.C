@@ -85,8 +85,8 @@ int main( int argc, char *argv[] )
     }
     /*go through all arguments and examine next relevant arg, adjust settings accordingly */
     if(argc == 11) { check_for_limit = 1; }                                        
-    if (i + 1 != argc)  {
-        for(int i = 1; i < argc; i++) {                                                 
+    for(int i = 1; i < argc; i++) {                                                 
+        if (i + 1 != argc)  {
             if (strcmp(argv[i], "-g") == 0)      {  tmp1 = argv[i + 1]; i++;   } 
             else if (strcmp(argv[i], "-t") == 0) {  tmp2 = argv[i + 1]; i++;   } 
             else if (strcmp(argv[i], "-o") == 0) {  tmp3 = argv[i + 1]; i++;   }
@@ -130,7 +130,7 @@ int main( int argc, char *argv[] )
 
     /* print out provided file arguments */
     std::cout << "File arguments provided: ";
-    std::cout << gfile << " " << tfile <<  " " << ofile << std::endl;
+    std::cout << gfile << std::endl << tfile << std::endl << ofile << std::endl;
 
     /* initialize the GBT file using TFile and using the GBT file as the argument */
     /* create new fileobject for GBT */
@@ -345,9 +345,10 @@ int main( int argc, char *argv[] )
         nhit        = tpfit_n;
         spec_cntr   = cntr;
 
-        /* remove counter if */
+        /* remove time break if iterating over entire dataset */
         if(tpfittime > 1495040000) { break; }
 
+        /* fill vectors with packet information, to be compared to GBT */
         for(counter = 0; counter < tpfit_MMFE8->size(); counter++)
         {
             tpmmfes.push_back(tpfit_MMFE8->at(counter));
@@ -356,24 +357,31 @@ int main( int argc, char *argv[] )
         }
         counter = 0;
 
+        /* bootstrapping part 1 */
         j = currifitpk;
         fill = 1;
+
+        /* begin looking in GBT dataset for matching packets */
         while(TRUE)
         {
-            // std::cout << "TEVENTNUM: " << EventNum << " GBTEVENTNUM: " << gEventNum << std::endl;
+            /* if j == ngbt, we've reache the end of the dataset; stop looking, and don't bootstrap */
             if(j == ngbt) { break; }
 
+            /* snag current entry from GBT tree */
             gbt_tree->GetEntry(j);
 
+            /* clear all necessary GBT branches in preparation of the addition of more dataa */
             gbtmmfes.clear();
             gbtvmms.clear();
             gbtchs.clear();
             gbtbcids.clear();
             t_tpfit_BCID->clear();
 
+            /* get gbt time (in sec and nsec) */
             gbttime = gbtTime_sec + gbtTime_nsec/pow(10.,9);
             gbt_event_num = gEventNum;
 
+            /* fill vectors with GBT data, to be compared to TPfit data */
             for(counter = 0; counter < gbtMMFE8->size(); counter++)
             {
                 gbtmmfes.push_back(gbtMMFE8->at(counter));
@@ -382,6 +390,8 @@ int main( int argc, char *argv[] )
                 gbtbcids.push_back(gbt_BCID->at(counter));
             }
             counter = 0;
+
+            /* if any boards did not fire during the entry, fill the sublevel coordinates with zeroes) */
             for(counter=0; counter<8; counter++)
             {
                 if( std::find(gbtMMFE8->begin(), gbtMMFE8->end(), boards[counter])==gbtMMFE8->end() ) 
@@ -391,6 +401,8 @@ int main( int argc, char *argv[] )
                     gbtchs.push_back(0);
                     gbtbcids.push_back(0);
                 }
+
+                /* if a bad board IP is found, kill everything. PURGE */
                 if(std::find(boards.begin(), boards.end(), gbtmmfes[counter]) == boards.end())
                 {
                     std::cout << "WARNING! BOARD IP IN DATA NOT FOUND IN IP LIST" << std::endl;
@@ -398,6 +410,8 @@ int main( int argc, char *argv[] )
                 }
             }
 
+            /* no matter what happens, this data is going in the end file
+            why not add them to the entry now? */
             t_mxlocal       = mxloc;
             t_bcid          = BCID;
             t_gts           = -1;
@@ -409,19 +423,24 @@ int main( int argc, char *argv[] )
             t_timesec       = tpTime_sec;
             t_timensec      = tpTime_nsec;
 
+            /* see how far away the packets are */
             time_difference = gbttime - tpfittime;
-            // std::cout << time_difference << std::endl;
             
+            /* if they are too far away, not point in getting farther away */
             if(time_difference > 0.2) { break; }
 
             time_difference = fabs(time_difference);
 
+            /* reset the match counter */
             int nmatch = 0;
             t_tpfit_MMFE8->clear();
             t_tpfit_VMM->clear();
             t_tpfit_CH->clear();
+
+            /* if the time difference is acceptable, begin packet comparison */
             if(time_difference < 0.2)
             {
+                /* check if the trigger processor output is in the GBT packets */
                 if(std::find(gbtbcids.begin(), gbtbcids.end(), bcid) != gbtbcids.end())
                 {
                     for(int counter2 = 0; counter2 < tpmmfes.size(); counter2++)
@@ -438,6 +457,7 @@ int main( int argc, char *argv[] )
                             gbt_tmp_hit_storage.push_back(gbtvmms[counter1]);
                             gbt_tmp_hit_storage.push_back(gbtchs[counter1]);
 
+                            /* if the two packets match each other, add them to the entry */
                             if(gbt_tmp_hit_storage == tp_tmp_hit_storage)
                             {
                                 nmatch += 1;
@@ -449,33 +469,37 @@ int main( int argc, char *argv[] )
                         }
                     }
 
-
+                    /* check if enough matches have been made */
                     if(nmatch == nhit)
                     {
+                        /* bootstrapping part two (do NOT do j + 1, it breaks everything) */
                         currifitpk      = j;
+
+                        /* replace the -1s with good stuff (data) */
                         t_gbteventnum   = gbt_event_num;
                         t_gts           = gbtTime_sec;
                         t_gtns          = gbtTime_nsec;
+
+                        /* fill the combined output tree! and let the program know it 
+                        doesn't need to fill it twice */
                         combdata->Fill();
-                        std::cout << t_timesec << std::endl;
-                        fill = 0;
-                // std::cout << std::fixed << gEventNum << " " << EventNum << " " << tpTime_sec << std::endl;
-                        // continue; 
+                        fill = 0; 
                     }
                 }
             }
+            /* increment j--move to the next gbt entry */
             j++;
         }
+        /* check if the tree was filled; if not fill it with -1 for GBT data */
         if(fill == 1) { 
-            // std::cout << "missing packet found! " << i << " nfit: " << nfit << std::endl;
-            // print_vector(tp_tmp_hit_storage);
-            // print_vector(gbt_tmp_hit_storage);
-            // std::cout << nevent << " " << gbt_event_num << std::endl;
+            /* add the missings to the milk carton */
             num_missing += 1;
             t_tpfit_BCID->clear();
             t_tpfit_MMFE8->clear();
             t_tpfit_VMM->clear();
             t_tpfit_CH->clear();
+
+            /* fill vectors with necessary TPfit informationt to be added to the output file */
             for(int counter2 = 0; counter2 < tpmmfes.size(); counter2++)
             {
                 t_tpfit_MMFE8->push_back(tpmmfes[counter2]);
@@ -483,23 +507,29 @@ int main( int argc, char *argv[] )
                 t_tpfit_CH->push_back(tpchs[counter2]);
                 t_tpfit_BCID->push_back(-1); 
             }
+            /* fill the tree with the current entry */
             combdata->Fill();
+
+            /* you can never be too safe */
             t_tpfit_BCID->clear();
         }
 
+        /* increment i--move to the next tpfit entry */
         i++;
-        if(i%100000==0) 
+
+        /* progress bar stuff */
+        if(i%500==0) 
         {    
             elapsed_seconds = (std::chrono::system_clock::now() - time_start);
             progress(elapsed_seconds.count(), i, nfit);
-        }
-
-
+        } 
     }
+
+    /* write to and close combined output file */
     output_file->Write();
     output_file->Close();
     std::cout << "Num missing: " << num_missing << std::endl;
-    std::cout <<  "TIME END" << std::endl;
+    std::cout  << std::endl <<"TIME END" << std::endl;
     get_time();
     return 0;
 }
