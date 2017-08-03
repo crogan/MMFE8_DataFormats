@@ -1,5 +1,6 @@
 /*/////////////////////////////////////////////////////////////////////////////////////////
 Program in C to combine TPFit data and GBT data into one file based on the BCIDS
+attempting to steer by TPFit
 Written by Joseph Farah on June 19, 2017
 Last updated by [Joseph Farah] on: [July 10, 2017]
 
@@ -9,7 +10,7 @@ Notes
 - how to print anythin that has type vector<int>: use * upon declaration and get
     value with gbtMMFE8->at(0)
 - the above notes should be outdated as this is now a standalone script and not a root macro
-- just fucking die --KH
+- just f@$%ing die --KH
 ///////////////////////////////////////////////////////////////////////////////////////////*/
 
 // header imports
@@ -44,9 +45,17 @@ void progress(double time_diff, int nprocessed, int ntotal)
 
 void get_time()
 {
-    time_t now = time(0);
-    char* dt = ctime(&now);
+    time_t now  = time(0);
+    char* dt    = ctime(&now);
     std::cout << dt << std::endl;
+}
+
+void print_vector(std::vector<double> vec) // only pass vectors by value, not reference
+{
+    for(int s = 0; s < vec.size(); s++)
+    {
+        std::cout << vec[s] << std::endl;
+    }
 }
 
 
@@ -54,14 +63,14 @@ void get_time()
 // begin main function 
 int main( int argc, char *argv[] )
 {
-    std::cout << "TIME BEGIN" << std::endl;
+    std::cout << "TIME BEGIN (VM TEST, TPFIT STEER)" << std::endl;
     get_time();
 
-    char* tmp1;
-    char* tmp2;
-    char* tmp3;
-    char* tmp4;
-    char* tmp5;
+    char* tmp1 = 0;
+    char* tmp2 = 0;
+    char* tmp3 = 0;
+    char* tmp4 = 0;
+    char* tmp5 = 0;
 
     int has_limit = 0;
     int limit = 0;
@@ -144,6 +153,7 @@ int main( int argc, char *argv[] )
     // get the number of all the entries in both of the trees
     // long ngbt = gbt_tree->GetEntries();
     long nfit = tpfit_tree->GetEntries();
+    long ngbt = gbt_tree->GetEntries();
 
     // create the output file, overwriting the old one if necessary
     TFile *output_file = new TFile(ofile, "RECREATE");
@@ -158,8 +168,8 @@ int main( int argc, char *argv[] )
     // as addresses, a TTree, and the branches themsleves
     int                 t_eventnum;
     int                 t_gbteventnum;
-    int                 t_gts;
-    int                 t_gtns;
+    int                 t_gts = 0;
+    int                 t_gtns = 0;
     int                 t_cntr;
     int                 t_timesec;
     int                 t_timensec;
@@ -173,8 +183,8 @@ int main( int argc, char *argv[] )
 
     combdata->Branch("EventNum", &t_eventnum);
     combdata->Branch("EventNumGBT", &t_gbteventnum);
-    combdata->Branch("gbtTime_sec", t_gts);
-    combdata->Branch("gbtTime_nsec", t_gtns);
+    combdata->Branch("gbtTime_sec", &t_gts);
+    combdata->Branch("gbtTime_nsec", &t_gtns);
     combdata->Branch("cntr",  &t_cntr);
     combdata->Branch("Time_sec",  &t_timesec);
     combdata->Branch("Time_nsec",  &t_timensec);    
@@ -249,11 +259,13 @@ int main( int argc, char *argv[] )
     double  gbttime;
     double  tpfittime;
     double  time_difference;
-    int     i = 0;
-    int     counter = 0;
     int     j;
-    int     currifitpk = 0;
     int     gtmp;
+    int i           = 0;
+    int counter     = 0;
+    int currifitpk  = 0;
+    int fill        = 1;
+    int num_missing = 0;
 
     // vectors that need to be created that will hold everything
     const int           GBT_COORDINATE_LENGTH = 9;
@@ -305,185 +317,174 @@ int main( int argc, char *argv[] )
     time_start = std::chrono::system_clock::now();
 
     i = 0;
-    while(gbt_tree->GetEntry(i))
+    while(tpfit_tree->GetEntry(i))
     {
-        gbtmmfes.clear();
-        gbtvmms.clear();
-        gbtchs.clear();
-        gbtbcids.clear();
-        gtmp = gEventNum;
+        if(has_limit != 0 && i >= limit) {  break;  }
+        tpmmfes.clear();
+        tpvmms.clear();
+        tpchs.clear(); 
+        tpbcids.clear();
 
-        // get the exact tiem of the event in nanoseconds by adding the time
-        // in seconds to the time in nanoseconds
-        gbttime = gbtTime_sec + gbtTime_nsec/pow(10.,9);
-        if(has_limit != 0 && i > limit) {  break;  }
-        /* creating a list containing the coordinates for each part of the event*/
-        for(counter = 0; counter < gbtMMFE8->size(); counter++)
+        nevent      = EventNum; 
+        tpfittime   = tpTime_sec + tpTime_nsec/pow(10.,9);
+        bcid        = BCID;
+        mxloc       = mxlocal;
+        nhit        = tpfit_n;
+        spec_cntr   = cntr;
+
+        if(tpfittime > 1495040000) { break; }
+
+        for(counter = 0; counter < tpfit_MMFE8->size(); counter++)
         {
-            gbtmmfes.push_back(gbtMMFE8->at(counter));
-            gbtvmms.push_back(gbt_VMM->at(counter));
-            gbtchs.push_back(gbt_CH->at(counter));
-            gbtbcids.push_back(gbt_BCID->at(counter));
+            tpmmfes.push_back(tpfit_MMFE8->at(counter));
+            tpvmms.push_back(tpfit_VMM->at(counter));
+            tpchs.push_back(tpfit_CH->at(counter));
         }
         counter = 0;
 
-        // check to see if there are any boards that did not fire, if thats the case
-        // replace their values with zeros by adding a new "event" to the array
-        for(counter=0; counter<8; counter++)
-        {
-            if( std::find(gbtMMFE8->begin(), gbtMMFE8->end(), boards[counter])==gbtMMFE8->end() ) 
-            {
-                gbtmmfes.push_back(boards[counter]);
-                gbtvmms.push_back(0);
-                gbtchs.push_back(0);
-                gbtbcids.push_back(0);
-            }
-            if(std::find(boards.begin(), boards.end(), gbtmmfes[counter]) == boards.end())
-            {
-                std::cout << "WARNING! BOARD IP IN DATA NOT FOUND IN IP LIST" << std::endl;
-                return 0;
-            }
-        }
-
-        // begin trying to align the TPfit packet with the GBT equivalent
         j = currifitpk;
-        while(TRUE) {
+        fill = 1;
+        while(TRUE)
+        {
+            // std::cout << "TEVENTNUM: " << EventNum << " GBTEVENTNUM: " << gEventNum << std::endl;
+            if(j == ngbt) { break; }
 
-            //get trigger process across #j, whatever j happens to be
-            int nmatch = 0;
-            tpfit_tree->GetEntry(j);
-            tpmmfes.clear();
-            tpvmms.clear();
-            tpchs.clear();
-            tpbcids.clear();
+            gbt_tree->GetEntry(j);
 
-            // if j is greater than the number of things in the fit tp file, break the loop
-            if( j == nfit ) { break; }
+            gbtmmfes.clear();
+            gbtvmms.clear();
+            gbtchs.clear();
+            gbtbcids.clear();
+            t_tpfit_BCID->clear();
 
-            // start declaring all the track information from tpfittree
-            nevent = EventNum;
+            gbttime = gbtTime_sec + gbtTime_nsec/pow(10.,9);
             gbt_event_num = gEventNum;
 
-            //  std::cout << "Eventnum " << nevent <<  std::endl; 
-            tpfittime = tpTime_sec + tpTime_nsec/pow(10.,9);
-            bcid = BCID;
-            mxloc = mxlocal;
-            nhit = tpfit_n;
-            spec_cntr = cntr;
-
-            // create the vectors that will hold all the TPfit event information
-            for(counter = 0; counter < tpfit_MMFE8->size(); counter++)
+            for(counter = 0; counter < gbtMMFE8->size(); counter++)
             {
-                tpmmfes.push_back(tpfit_MMFE8->at(counter));
-                tpvmms.push_back(tpfit_VMM->at(counter));
-                tpchs.push_back(tpfit_CH->at(counter));
-
+                gbtmmfes.push_back(gbtMMFE8->at(counter));
+                gbtvmms.push_back(gbt_VMM->at(counter));
+                gbtchs.push_back(gbt_CH->at(counter));
+                gbtbcids.push_back(gbt_BCID->at(counter));
             }
             counter = 0;
+            for(counter=0; counter<8; counter++)
+            {
+                if( std::find(gbtMMFE8->begin(), gbtMMFE8->end(), boards[counter])==gbtMMFE8->end() ) 
+                {
+                    gbtmmfes.push_back(boards[counter]);
+                    gbtvmms.push_back(0);
+                    gbtchs.push_back(0);
+                    gbtbcids.push_back(0);
+                }
+                if(std::find(boards.begin(), boards.end(), gbtmmfes[counter]) == boards.end())
+                {
+                    std::cout << "WARNING! BOARD IP IN DATA NOT FOUND IN IP LIST" << std::endl;
+                    return 0;
+                }
+            }
 
-            // check the time difference betwen the tp and gbt packet
-            // they should ideally be very close together, some difference is acceptable
-            // just fucking die --KH but if the difference is greater than 0.2 we are misaligning the data
-            time_difference = tpfittime - gbttime;
+            t_mxlocal       = mxloc;
+            t_bcid          = BCID;
+            t_gts           = -1;
+            t_gtns          = -1;
+            t_gbteventnum   = -1;
+            t_tpfit_n       = nhit;
+            t_cntr          = spec_cntr;
+            t_eventnum      = nevent;
+            t_timesec       = tpTime_sec;
+            t_timensec      = tpTime_nsec;
 
-            // break if we've gone to far
-            if( time_difference>0.2 ) { break; }
+            time_difference = gbttime - tpfittime;
+            // std::cout << time_difference << std::endl;
+            
+            if(time_difference > 0.2) { break; }
 
-            // if the time difference between the tp packet and the gbt packet
-            // is within reasonable error, do the following
             time_difference = fabs(time_difference);
 
-            // if the time difference is within reasonable error
-            if( time_difference<0.2 )
+            int nmatch = 0;
+            t_tpfit_MMFE8->clear();
+            t_tpfit_VMM->clear();
+            t_tpfit_CH->clear();
+            if(time_difference < 0.2)
             {
-                // is the time of the tpfit packet in the list of the gbt packet BCIDS
-                // we created earlier? if so, continue
-                if( std::find(gbtbcids.begin(), gbtbcids.end(), bcid) != gbtbcids.end() )
+                if(std::find(gbtbcids.begin(), gbtbcids.end(), bcid) != gbtbcids.end())
                 {
-                    // fill a vector with the single hit information to compare to the gbt stuff
-                    for(int counter2=0; counter2<tpmmfes.size(); counter2++)
+                    for(int counter2 = 0; counter2 < tpmmfes.size(); counter2++)
                     {
                         tp_tmp_hit_storage.clear();
                         tp_tmp_hit_storage.push_back(tpmmfes[counter2]);
                         tp_tmp_hit_storage.push_back(tpvmms[counter2]);
-                        tp_tmp_hit_storage.push_back(tpchs[counter2]);
+                        tp_tmp_hit_storage.push_back(tpchs[counter2]); 
 
-                        for(int counter1=0; counter1<gbtmmfes.size(); counter1++)
+                        for(int counter1 = 0; counter1 < gbtmmfes.size(); counter1++)
                         {
-
                             gbt_tmp_hit_storage.clear();
                             gbt_tmp_hit_storage.push_back(gbtmmfes[counter1]);
                             gbt_tmp_hit_storage.push_back(gbtvmms[counter1]);
                             gbt_tmp_hit_storage.push_back(gbtchs[counter1]);
-                            // are the coordinates int eh gbt set the same as the 
-                            // coordinates recorded by the trigger process? if yes
-                            // continue, if no, don't do anything
-                            if( gbt_tmp_hit_storage == tp_tmp_hit_storage )
+
+                            if(gbt_tmp_hit_storage == tp_tmp_hit_storage)
                             {
-                                // increment nmatch too add to the lsit of entries
-                                // that have corresponding trigger events
-                                nmatch += 1;   
+                                nmatch += 1;
                                 t_tpfit_MMFE8->push_back(tpmmfes[counter2]);
                                 t_tpfit_VMM->push_back(tpvmms[counter2]);
                                 t_tpfit_CH->push_back(tpchs[counter2]);
-                                t_tpfit_BCID->push_back(gbtbcids[counter2]); 
+                                t_tpfit_BCID->push_back(gbtbcids[counter1]); 
                             }
-
                         }
-
                     }
 
-                    // update the combined branches with all the new data
-                    t_mxlocal   = mxloc;
-                    t_bcid      = BCID;
-                    t_gts       = gbtTime_sec;
-                    t_gtns      = gbtTime_nsec;
-                    t_tpfit_n   = nhit;
-                    t_cntr      = spec_cntr;
-                    t_eventnum  = nevent;
-                    t_timesec   = tpTime_sec;
-                    t_timensec  = tpTime_nsec;
 
-                    if( nmatch == nhit )
+                    if(nmatch == nhit)
                     {
-                        currifitpk = j + 1;
-                        t_gbteventnum = gbt_event_num;
+                        currifitpk      = j;
+                        t_gbteventnum   = gbt_event_num;
+                        t_gts           = gbtTime_sec;
+                        t_gtns          = gbtTime_nsec;
                         combdata->Fill();
-
+                        std::cout << t_timesec << std::endl;
+                        fill = 0;
+                // std::cout << std::fixed << gEventNum << " " << EventNum << " " << tpTime_sec << std::endl;
+                        // continue; 
                     }
-                    else if(nmatch != nhit)
-                    {
-                        t_gbteventnum = -1;
-                        t_tpfit_BCID->clear(); 
-                        t_tpfit_BCID->push_back(-1); 
-                        currifitpk = j + 1;
-                        combdata->Fill();
-                    }
-
-                    // clear the current branch entries to make room for the next ones
-                    t_tpfit_MMFE8->clear();
-                    t_tpfit_VMM->clear();
-                    t_tpfit_CH->clear();
-                    t_tpfit_BCID->clear();
                 }
             }
-
             j++;
+        }
+        if(fill == 1) { 
+            // std::cout << "missing packet found! " << i << " nfit: " << nfit << std::endl;
+            // print_vector(tp_tmp_hit_storage);
+            // print_vector(gbt_tmp_hit_storage);
+            // std::cout << nevent << " " << gbt_event_num << std::endl;
+            num_missing += 1;
+            t_tpfit_BCID->clear();
+            t_tpfit_MMFE8->clear();
+            t_tpfit_VMM->clear();
+            t_tpfit_CH->clear();
+            for(int counter2 = 0; counter2 < tpmmfes.size(); counter2++)
+            {
+                t_tpfit_MMFE8->push_back(tpmmfes[counter2]);
+                t_tpfit_VMM->push_back(tpvmms[counter2]);
+                t_tpfit_CH->push_back(tpchs[counter2]);
+                t_tpfit_BCID->push_back(-1); 
+            }
+            combdata->Fill();
+            t_tpfit_BCID->clear();
         }
 
         i++;
-
-        // time stuff
-        if(i%1000==0) 
+        if(i%100000==0) 
         {    
             elapsed_seconds = (std::chrono::system_clock::now() - time_start);
-            progress(elapsed_seconds.count(), i, gbt_tree->GetEntries());
+            progress(elapsed_seconds.count(), i, nfit);
         }
+
+
     }
-
-
     output_file->Write();
     output_file->Close();
+    std::cout << "Num missing: " << num_missing << std::endl;
     std::cout <<  "TIME END" << std::endl;
     get_time();
     return 0;
