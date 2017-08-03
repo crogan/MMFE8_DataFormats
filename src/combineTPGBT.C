@@ -60,7 +60,7 @@ void print_vector(std::vector<double> vec) // only pass vectors by value, not re
 
 
 
-// begin main function 
+/* begin main function */
 int main( int argc, char *argv[] )
 {
     std::cout << "TIME BEGIN (VM TEST, TPFIT STEER)" << std::endl;
