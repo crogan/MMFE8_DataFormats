@@ -66,25 +66,27 @@ int main( int argc, char *argv[] )
     std::cout << "TIME BEGIN (VM TEST, TPFIT STEER)" << std::endl;
     get_time();
 
+    /*define them beforehand--C++ doesn't like it when you construct things in if statements*/
     char* tmp1 = 0;
     char* tmp2 = 0;
     char* tmp3 = 0;
     char* tmp4 = 0;
     char* tmp5 = 0;
 
-    int has_limit = 0;
-    int limit = 0;
+    int has_limit       = 0;
+    int limit           = 0;
     int check_for_limit = 0;
     
-    // argument stuff
+    /* argument stuff */
     if(argc != 11 && argc != 9){
         std::cout << "!Not enough or invalid arguments, please try again.\n";
         std::cout << "Example syntax: ./combineTPGBT -g Run3522_GBT_decoded.root -t Run3522_FIT_decoded.root -o combined.root -r 3522" << std::endl;
         return 0;
     }
-    if(argc == 11) { check_for_limit = 1; }
-    for(int i = 1; i < argc; i++) {
-        if (i + 1 != argc)  {
+    /*go through all arguments and examine next relevant arg, adjust settings accordingly */
+    if(argc == 11) { check_for_limit = 1; }                                        
+    if (i + 1 != argc)  {
+        for(int i = 1; i < argc; i++) {                                                 
             if (strcmp(argv[i], "-g") == 0)      {  tmp1 = argv[i + 1]; i++;   } 
             else if (strcmp(argv[i], "-t") == 0) {  tmp2 = argv[i + 1]; i++;   } 
             else if (strcmp(argv[i], "-o") == 0) {  tmp3 = argv[i + 1]; i++;   }
@@ -96,6 +98,7 @@ int main( int argc, char *argv[] )
                             continue;
                         }
                         else {
+                            /* let the program know it has to deal with a limit later on */
                             has_limit = 1;
                             tmp5 = argv[i+1];
                         }
@@ -112,35 +115,37 @@ int main( int argc, char *argv[] )
         }
     }
 
+    /* ROOT needs const chars as file names */
     const char* gfile   = tmp1;
     const char* tfile   = tmp2;
     const char* ofile   = tmp3;
     const char* run_num = tmp4;
 
+    /* tmp5 will only have a value if limit was defined as existing */
     if(has_limit != 0)
     {
         limit = std::stoi(tmp5);
         std::cout << "limit" << limit << std::endl;
     }
 
-
+    /* print out provided file arguments */
     std::cout << "File arguments provided: ";
     std::cout << gfile << " " << tfile <<  " " << ofile << std::endl;
 
-    // initialize the GBT file using TFile and using the GBT file as the argument
-    // create new fileobject for GBT
+    /* initialize the GBT file using TFile and using the GBT file as the argument */
+    /* create new fileobject for GBT */
     TFile *gbt_file_object = new TFile(gfile);
-    // pull the tree from the file
+    /* pull the tree from the file */
     TTree *gbt_tree = (TTree*)gbt_file_object->Get("GBT_data");    
     
-    // do the same thing now with the TPfit file
-    // create new file object for TPfit
+    /* do the same thing now with the TPfit file */
+    /* create new file object for TPfit */
     TFile *tpfit_file_object = new TFile(tfile);
     
-    // pull the tpfit tree fromt the file
+    /* pull the tpfit tree fromt the file */
     TTree *tpfit_tree = (TTree*)tpfit_file_object->Get("TPfit_data");
     
-    // check to make sure the TTrees exist
+    /* check to make sure the TTrees exist */
     if (!gbt_tree){
         std::cout << "Error: GBT tree is a null pointer!" << std::endl;
         return 0;
@@ -150,22 +155,25 @@ int main( int argc, char *argv[] )
         return 0;
     }
 
-    // get the number of all the entries in both of the trees
-    // long ngbt = gbt_tree->GetEntries();
+    /* get the number of all the entries in both of the trees */
     long nfit = tpfit_tree->GetEntries();
     long ngbt = gbt_tree->GetEntries();
 
-    // create the output file, overwriting the old one if necessary
+    /* create the output file, overwriting the old one if necessary */
     TFile *output_file = new TFile(ofile, "RECREATE");
 
-    // this will create the combined branches data tree
-    // argument setup: Branch(branchname address, leaflist)
-    // for vectors, use the address of the vector instead of the name
+    /* 
+    this will create the combined branches data tree 
+    argument setup: Branch(branchname address, leaflist) 
+    for vectors, use the address of the vector instead of the name 
+    */
     TTree *combdata = new TTree("TPcomb_data", "TPcomb_data");
 
-    // here i'm going to start creating the branches for the new file
-    // this is going to require me initiliazing various variables to use
-    // as addresses, a TTree, and the branches themsleves
+    /*
+    here i'm going to start creating the branches for the new file
+    this is going to require me initiliazing various variables to use
+    as addresses, a TTree, and the branches themsleves
+    */
     int                 t_eventnum;
     int                 t_gbteventnum;
     int                 t_gts = 0;
@@ -196,8 +204,9 @@ int main( int argc, char *argv[] )
     combdata->Branch("tpfit_BCID", &t_tpfit_BCID);
     combdata->Branch("tpfit_n",&t_tpfit_n);
 
-    // get the addresses of all the branches in the GBT and TPFit trees
-    // gbt tree address declaration
+    /*get the addresses of all the branches in the GBT and TPFit trees */
+
+    /* gbt tree address declaration */
     int                 gbtTime_sec;
     int                 gbtTime_nsec;
     int                 gEventNum;
@@ -206,7 +215,7 @@ int main( int argc, char *argv[] )
     std::vector<int>    *gbt_CH = 0;
     std::vector<int>    *gbt_BCID = 0;
 
-    // List of branches which may be unnecessary but whatever
+    /* List of branches which may be unnecessary but whatever */
     TBranch        *b_EventNum = 0;   
     TBranch        *b_Time_sec = 0; 
     TBranch        *b_Time_nsec = 0;   
@@ -215,7 +224,7 @@ int main( int argc, char *argv[] )
     TBranch        *b_gbt_MMFE8 = 0;   
     TBranch        *b_gbt_BCID = 0;   
 
-    // initialize all the branches using the pointers just created
+    /* initialize all the branches using the pointers just created */
     gbt_tree->SetBranchAddress("EventNum", &gEventNum, &b_EventNum);
     gbt_tree->SetBranchAddress("Time_sec", &gbtTime_sec, &b_Time_sec);
     gbt_tree->SetBranchAddress("Time_nsec", &gbtTime_nsec, &b_Time_nsec);
@@ -225,7 +234,7 @@ int main( int argc, char *argv[] )
     gbt_tree->SetBranchAddress("gbt_BCID", &gbt_BCID, &b_gbt_BCID);
 
 
-    // tpfit tree address declaration, FFS initialize your pointers
+    /* tpfit tree address declaration, FFS initialize your pointers */
     int                 EventNum;
     int                 nevent;
     int                 gbt_event_num;
@@ -243,7 +252,7 @@ int main( int argc, char *argv[] )
     std::vector<int>    *tpfit_VMM = 0;
     std::vector<int>    *tpfit_CH = 0;
 
-    // initialize all the tpfit branches using the pointers just creates
+    /* initialize all the tpfit branches using the pointers just creates */
     tpfit_tree->SetBranchAddress("EventNum", &EventNum);
     tpfit_tree->SetBranchAddress("Time_sec", &tpTime_sec);
     tpfit_tree->SetBranchAddress("Time_nsec", &tpTime_nsec);
@@ -255,7 +264,7 @@ int main( int argc, char *argv[] )
     tpfit_tree->SetBranchAddress("tpfit_VMM", &tpfit_VMM);
     tpfit_tree->SetBranchAddress("tpfit_CH", &tpfit_CH);
 
-    // initialize any variables that will be used within the loop
+    /* initialize any variables that will be used within the loop */
     double  gbttime;
     double  tpfittime;
     double  time_difference;
@@ -267,7 +276,7 @@ int main( int argc, char *argv[] )
     int fill        = 1;
     int num_missing = 0;
 
-    // vectors that need to be created that will hold everything
+    /* vectors that need to be created that will hold everything */
     const int           GBT_COORDINATE_LENGTH = 9;
     std::vector<int>    gbtmmfes = {};
     std::vector<int>    gbtvmms = {};
@@ -279,14 +288,13 @@ int main( int argc, char *argv[] )
     std::vector<int>    tpchs = {};
     std::vector<int>    tpbcids = {};
 
-    // this vector will store the hit information for each track
-    // use i to compare to the gbt data
-    std::vector<double> tp_tmp_hit_storage = {};
+    /* this vector will store the hit information for each track */
+    std::vector<double> tp_tmp_hit_storage  = {};
     std::vector<double> gbt_tmp_hit_storage = {};
 
 
-    // preallocating all the vector slots on the heap--slower compile times
-    // but significantly faster run times
+    /* preallocating all the vector slots on the heap--slower compile times
+    but significantly faster run times */
     gbtmmfes.reserve(GBT_COORDINATE_LENGTH);
     gbtvmms.reserve(GBT_COORDINATE_LENGTH);
     gbtchs.reserve(GBT_COORDINATE_LENGTH);
@@ -299,9 +307,10 @@ int main( int argc, char *argv[] )
     tp_tmp_hit_storage.reserve(3);
 
 
-    // board IPs go here, its a vector, HAVE I MADE SENPAI PROUD
+    /* board IPs go here, its a vector, HAVE I MADE SENPAI PROUD */
     std::vector<int> boards;
 
+    /* selecting the board configuration based on the arguments provided */
     int run_num_int = std::stoi(run_num);
     std::cout << "run num: " << run_num_int << std::endl;
     if     (run_num_int >= 3515 && run_num_int <=3517) { boards = {105, 118, 107, 106, 119, 117, 116, 111}; }
@@ -311,20 +320,24 @@ int main( int argc, char *argv[] )
     else { std::cout << "ERROR: Board configuration unknown for run number " << run_num_int << std::endl; return 0;}
 
 
-    //progress bar stuff
+    /* progress bar stuff */
     std::chrono::time_point<std::chrono::system_clock> time_start;
     std::chrono::duration<double> elapsed_seconds;
     time_start = std::chrono::system_clock::now();
 
     i = 0;
-    while(tpfit_tree->GetEntry(i))
+    while(tpfit_tree->GetEntry(i)) /*iterate through tree while an entry in tpfit_tree exists */
     {
+        /* if limit exists, break after that limit (see program arguments) */
         if(has_limit != 0 && i >= limit) {  break;  }
+
+        /* clear all necessary vectors */
         tpmmfes.clear();
         tpvmms.clear();
         tpchs.clear(); 
         tpbcids.clear();
 
+        /* grab all necessary data from the tpfit_tree */
         nevent      = EventNum; 
         tpfittime   = tpTime_sec + tpTime_nsec/pow(10.,9);
         bcid        = BCID;
@@ -332,6 +345,7 @@ int main( int argc, char *argv[] )
         nhit        = tpfit_n;
         spec_cntr   = cntr;
 
+        /* remove counter if */
         if(tpfittime > 1495040000) { break; }
 
         for(counter = 0; counter < tpfit_MMFE8->size(); counter++)
