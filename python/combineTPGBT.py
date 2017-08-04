@@ -166,11 +166,12 @@ def main(argv):
             continue
         i += 1
         progress(tm.time()-tstart, i, ngbt)
+        
     print "\nChecking for missed fit packets"
     nmiss = 0
     tstart = tm.time()
     setmatched = set(matchedFitEvents)
-    setall = set(range(nfit))
+    setall = set(range(j))
     missing = setall.difference(setmatched)
     print "First twenty missing events (entry num): ", list(missing)[::-1][0:20]
     # loop through missing events to add them with BCID -1
