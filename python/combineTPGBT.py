@@ -15,6 +15,7 @@ def main(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument("--gfile", default="", help="input GBT file")
     parser.add_argument("--tfile", default="", help="input TP file")
+    parser.add_argument("--l", default="", help="limit on number of iterations")
     parser.add_argument("-o", default="", help="output root file")
     args = parser.parse_args()
 
@@ -25,6 +26,15 @@ def main(argv):
     tpf = ROOT.TFile(args.tfile)
     tpfit_tree = tpf.Get("TPfit_data")
     tpfit_branches = tpfit_tree.GetListOfBranches()
+
+    if args.l != "": 
+        limit = args.l
+        check_limit = 1
+    else:
+        limit = 0
+        check_limit = 0
+
+    limit = int(limit)
 
     i = 0
 
@@ -79,6 +89,9 @@ def main(argv):
         #    continue
         time = gbt_tree.Time_sec + gbt_tree.Time_nsec/pow(10.,9)
 
+        if check_limit == 1:
+            if i > limit: break
+
         gbtpk = GBTPacket(time)
 
         mmfes = [im for im in gbt_tree.gbt_MMFE8]
@@ -101,6 +114,7 @@ def main(argv):
 
             if (j == nfit):
                 break
+
 
             time = tpfit_tree.Time_sec + tpfit_tree.Time_nsec/pow(10.,9)
             bcid = tpfit_tree.BCID
