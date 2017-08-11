@@ -227,28 +227,28 @@ int main( int argc, char *argv[] )  {
     int_v  *tpfit_CH       = 0;
 
     /* initialize all the tpfit branches using the pointers just creates */
-    tpfit_tree_old->SetBranchAddress("EventNum", &EventNum);
-    tpfit_tree_old->SetBranchAddress("Time_sec", &tpTime_sec);
-    tpfit_tree_old->SetBranchAddress("Time_nsec", &tpTime_nsec);
-    tpfit_tree_old->SetBranchAddress("BCID", &BCID);
-    tpfit_tree_old->SetBranchAddress("mxlocal", &mxlocal);
-    tpfit_tree_old->SetBranchAddress("tpfit_n", &tpfit_n);
-    tpfit_tree_old->SetBranchAddress("cntr", &cntr);
+    tpfit_tree_old->SetBranchAddress("EventNum",    &EventNum);
+    tpfit_tree_old->SetBranchAddress("Time_sec",    &tpTime_sec);
+    tpfit_tree_old->SetBranchAddress("Time_nsec",   &tpTime_nsec);
+    tpfit_tree_old->SetBranchAddress("BCID",        &BCID);
+    tpfit_tree_old->SetBranchAddress("mxlocal",     &mxlocal);
+    tpfit_tree_old->SetBranchAddress("tpfit_n",     &tpfit_n);
+    tpfit_tree_old->SetBranchAddress("cntr",        &cntr);
     tpfit_tree_old->SetBranchAddress("tpfit_MMFE8", &tpfit_MMFE8);
-    tpfit_tree_old->SetBranchAddress("tpfit_VMM", &tpfit_VMM);
-    tpfit_tree_old->SetBranchAddress("tpfit_CH", &tpfit_CH);
+    tpfit_tree_old->SetBranchAddress("tpfit_VMM",   &tpfit_VMM);
+    tpfit_tree_old->SetBranchAddress("tpfit_CH",    &tpfit_CH);
 
     /* combdata branch additions */
 
     int   t_gbteventnum = 0;
-    int   t_gts = 0;
-    int   t_gtns = 0;
+    int   t_gts         = 0;
+    int   t_gtns        = 0;
     int_v *t_tpfit_BCID = 0;
 
-    combdata->Branch("EventNumGBT", &t_gbteventnum);
-    combdata->Branch("gbtTime_sec", &t_gts);
+    combdata->Branch("EventNumGBT",  &t_gbteventnum);
+    combdata->Branch("gbtTime_sec",  &t_gts);
     combdata->Branch("gbtTime_nsec", &t_gtns);
-    combdata->Branch("tpfit_BCID", &t_tpfit_BCID);
+    combdata->Branch("tpfit_BCID",   &t_tpfit_BCID);
 
     /* initialize any variables that will be used within the loop */
     double  gbttime;
