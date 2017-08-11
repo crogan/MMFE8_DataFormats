@@ -400,8 +400,7 @@ int main( int argc, char *argv[] )  {
 
 
                     /* check if enough matches have been made */
-                    if(nmatch == tpfit_n)
-                    {
+                    if(nmatch == tpfit_n) {
                         /* replace the -1s with good stuff (data) */
                         t_gbteventnum   = gbt_event_num;
                         t_gts           = gbtTime_sec;
