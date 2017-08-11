@@ -1,13 +1,15 @@
-/*/////////////////////////////////////////////////////////////////////////////////////////
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Program in C to combine TPFit data and GBT data into one file based on the BCIDS
 attempting to steer by TPFit
+Original program started on June 19th, 2017
 Written by Joseph Farah on August 9th, 2017
-Last updated by [Joseph Farah] on: [August 9, 2017]
+Last updated by [Joseph Farah] on: [August 11, 2017]
 
 Notes
 - Using TTree clone instead of steering by either file
+- All compiler warnings should be removed, let me know immediately if you find any
 - just f@$%ing die --KH
-///////////////////////////////////////////////////////////////////////////////////////////*/
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
 /* header imports */
 #include <iostream> 
@@ -18,7 +20,7 @@ Notes
 #include <string>
 #include <TROOT.h>
 #include <TChain.h>
-#include <TFile.h>
+#include <TFile.h>  
 #include "TSystem.h"
 
 #define TRUE 1
@@ -408,7 +410,7 @@ int main( int argc, char *argv[] )  {
                         /* fill the combined output tree! and let the program know it 
                         doesn't need to fill it twice */
                         fill = 0; 
-                        
+
                         /* bootstrapping part two (do NOT do j + 1, it breaks everything) */
                         currifitpk = j;
                     }
