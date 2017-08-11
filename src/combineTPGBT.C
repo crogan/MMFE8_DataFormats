@@ -124,9 +124,9 @@ int main( int argc, char *argv[] )  {
     }
 
     /* ROOT needs const chars as file names */
-    const char* gfile = tmp1;
-    const char* tfile = tmp2;
-    const char* ofile = tmp3;
+    const char* gfile   = tmp1;
+    const char* tfile   = tmp2;
+    const char* ofile   = tmp3;
     const char* run_num = tmp4;
 
     /* tmp5 will only have a value if limit was defined as existing */
