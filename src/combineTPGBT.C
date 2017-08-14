@@ -309,13 +309,6 @@ int main( int argc, char *argv[] )  {
         /* remove time break if iterating over entire dataset */
         if(tpfittime > 1495040000) { break; }
 
-         /* fill vectors with packet information, to be compared to GBT */
-        for(unsigned int counter = 0; counter < tpfit_MMFE8->size(); counter++)  {
-            tpmmfes.push_back(tpfit_MMFE8->at(counter));
-            tpvmms.push_back(tpfit_VMM->at(counter));
-            tpchs.push_back(tpfit_CH->at(counter));
-        }
-
         /* bootstrapping, part 1 */
         j = currifitpk;
         fill = 1;
