@@ -8,7 +8,6 @@ Last updated by [Joseph Farah] on: [August 11, 2017]
 Notes
 - Using TTree clone instead of steering by either file
 - All compiler warnings should be removed, let me know immediately if you find any
-- just f@$%ing die --KH
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
 /* header imports */
