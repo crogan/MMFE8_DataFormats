@@ -306,7 +306,7 @@ int main( int argc, char *argv[] )  {
         t_tpfit_BCID->clear();
 
         /* remove time break if iterating over entire dataset */
-        if(tpfittime > 1495040000) { break; }
+        // if(tpfittime > 1495040000) { break; }
 
         /* bootstrapping, part 1 */
         j = currifitpk;
