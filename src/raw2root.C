@@ -68,9 +68,10 @@ int main(int argc, char* argv[]) {
   int EventNum;
   int Time_sec;
   int Time_nsec;
-  int trig_BCID;
 
   int N_mm = 0;
+  vector<int> trig_BCID;
+  vector<int> trig_ph;
   vector<int> mm_VMM;
   vector<int> mm_CH;
   vector<int> mm_PDO;
@@ -83,6 +84,7 @@ int main(int argc, char* argv[]) {
   tree->Branch("Time_sec",  &Time_sec);
   tree->Branch("Time_nsec", &Time_nsec);
   tree->Branch("trig_BCID", &trig_BCID);
+  tree->Branch("trig_ph", &trig_ph);
 
   tree->Branch("N_mm", &N_mm);
   tree->Branch("mm_VMM", &mm_VMM);
@@ -100,7 +102,8 @@ int main(int argc, char* argv[]) {
   long fifotrig;
   long num_trig;
   long bcid_trig;
-  
+  long ph_trig;
+
   string sword0;
   string sword1;
   long iword0;
@@ -137,12 +140,17 @@ int main(int argc, char* argv[]) {
 	  sfifo >> fifocount;
 	  sfifo >> cycle;
 	  sfifo >> std::hex >> fifotrig;
-	  num_trig = fifotrig & 1048575;
-	  fifotrig = fifotrig >> 20;
+	  num_trig = fifotrig & 65535;
+	  //num_trig = fifotrig & 1048575;
+      fifotrig = fifotrig >> 16;
+      ph_trig = fifotrig & 7;
+      fifotrig = fifotrig >> 4;
 	  bcid_trig = fifotrig & 4095;
 
 	  if(eventnum > 0 && num_trig != eventnum){
 	    tree->Fill();
+        trig_BCID.clear();
+        trig_ph.clear();
 	    mm_VMM.clear();
 	    mm_CH.clear();
 	    mm_PDO.clear();
@@ -157,7 +165,6 @@ int main(int argc, char* argv[]) {
 	  EventNum = num_trig + pow(2,20)*cycle;
 	  Time_sec = machinetime/billion;
 	  Time_nsec = machinetime%billion;
-	  trig_BCID = bcid_trig;
 	}
 
 	if(itok > 1){
@@ -193,6 +200,8 @@ int main(int argc, char* argv[]) {
 	    mm_TDO.push_back(TDO);
 	    mm_BCID.push_back(bcid_int);
 	    mm_MMFE8.push_back(MMFE8);
+        trig_BCID.push_back(bcid_trig);
+        trig_ph.push_back(ph_trig);
 	    mm_FIFOcount.push_back(fifocount/2);
 	    N_mm++;
 	  }

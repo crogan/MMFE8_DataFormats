@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
 	    bcid_int = gray_to_int(bcid_gray);
 
 	    if(num_trig != eventnum){
-	      ofile << "EventNum " << num_trig + pow(2,20)*cycle;
+          ofile << "EventNum " << num_trig + pow(2,20)*cycle;
 	      ofile << " Sec " << machinetime/billion;
 	      ofile << " NS " << machinetime%billion;
 	      ofile << " BCIDtrig " << bcid_trig;

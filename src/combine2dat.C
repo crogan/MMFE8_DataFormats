@@ -102,12 +102,12 @@ int N_tp;
 vector<int> tp_VMM;
 vector<int> tp_CH;
 vector<int> tp_MMFE8;
-vector<vector<int>> tp_Group_VMM;
-vector<vector<int>> tp_Group_CH;
-vector<vector<int>> tp_Group_MMFE8;
+vector<vector<int> > tp_Group_VMM;
+vector<vector<int> > tp_Group_CH;
+vector<vector<int> > tp_Group_MMFE8;
 
 // Configurable - check these
-vector<int> MMFE8Order = {117,106,119,107,116,111,118,105};
+int MMFE8Order[8] = {117,106,119,107,116,111,118,105};
 int tcut = 10.;
 
 bool Initialize_MM(const string& filename);
@@ -644,7 +644,7 @@ bool NextSCINTEvent(){
   if(g_sdat){
     if(!g_SCINTstream || !g_SCINTstream->is_open())
       return false;
-
+    int p;
     if(!getline(*g_SCINTstream, g_SCINTline))
       return false;
 
@@ -658,8 +658,6 @@ bool NextSCINTEvent(){
 
     sci_CH.clear();
     sci_count.clear();
-
-    int p;
 
     for(int i = 0; i < N_sci; i++){
       if(getline(*g_SCINTstream, g_SCINTline)){
@@ -725,7 +723,7 @@ bool NextTPEvent(){
       sline2 >> dum;
     }      
 
-    for(int i = 0; i < 8; i++){
+    for(unsigned int i = 0; i < 8; i++){
       if(getline(*g_TPstream, g_TPline)){
         std::stringstream sline3;
         sline3.str("");
@@ -767,7 +765,7 @@ bool NextTPSCINTEvent(){
   if(g_tsdat){
     if(!g_TPSCINTstream || !g_TPSCINTstream->is_open())
       return false;
-    int p;
+
     if(!getline(*g_TPSCINTstream, g_TPSCINTline))
       return false;
     std::stringstream sline;
@@ -850,7 +848,7 @@ void WriteEvent(){
     *output_file << std::setw(4) << left << mm_FIFOcount[i] << endl;
   }
   if ((g_tdat||g_troot)) {
-  for(int k = 0; k < tp_Group_MMFE8.size(); k++){
+  for(unsigned int k = 0; k < tp_Group_MMFE8.size(); k++){
     for(int i = 0; i < 8; i++){
       *output_file << "TP "; 
       *output_file << std::setw(2) << left << tp_Group_VMM[k][i];
