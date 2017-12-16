@@ -65,6 +65,10 @@ int main(int argc, char* argv[]) {
   ofile.open(outputFileName);
 
   long eventnum = 0;
+  long num_trig = -1;
+  long num_trig_new = -1;
+  long bcid_trig;
+  long bcid_trig_new = -1;
 
   // Loop through the entire input file
   if(ifile.is_open()){
@@ -74,9 +78,8 @@ int main(int argc, char* argv[]) {
       int fifocount;
       int cycle;
       long fifotrig;
-      long num_trig;
-      long bcid_trig;
-      
+      long ph_trig;
+
       string sword0;
       string sword1;
       long iword0;
@@ -110,9 +113,21 @@ int main(int argc, char* argv[]) {
 	  sfifo >> fifocount;
 	  sfifo >> cycle;
 	  sfifo >> std::hex >> fifotrig;
-	  num_trig = fifotrig & 1048575;
-	  fifotrig = fifotrig >> 20;
-	  bcid_trig = fifotrig & 4095;
+	  num_trig_new = fifotrig & 65535;
+	  fifotrig = fifotrig >> 16;
+      ph_trig = fifotrig & 7;
+      fifotrig = fifotrig >> 4;
+	  bcid_trig_new = fifotrig & 4095;
+      if (num_trig_new != num_trig){
+        num_trig = num_trig_new;
+      }
+      // if (num_trig_new != num_trig && (MMFE8 != 122 && MMFE8 != 126 && MMFE8 != 106 && MMFE8 != 124 && MMFE8 != 119)){
+      //   num_trig = num_trig_new;
+      // }
+      // else if (num_trig_new != num_trig && (MMFE8 == 122 || MMFE8 == 126 || MMFE8 == 106 || MMFE8 == 124) && (fabs(bcid_trig_new-bcid_trig) > 1)){
+      //   num_trig = num_trig_new;
+      // }
+      bcid_trig = bcid_trig_new;
 	}
 
 	if(itok > 1){
@@ -143,12 +158,13 @@ int main(int argc, char* argv[]) {
 	    bcid_int = gray_to_int(bcid_gray);
 
 	    if(num_trig != eventnum){
-          ofile << "EventNum " << num_trig + pow(2,20)*cycle;
+          ofile << "EventNum " << num_trig + pow(2,16)*cycle;
 	      ofile << " Sec " << machinetime/billion;
 	      ofile << " NS " << machinetime%billion;
-	      ofile << " BCIDtrig " << bcid_trig;
+	      //ofile << " BCIDtrig " << bcid_trig;
 	      ofile << endl;
 	    }
+          
 	    eventnum = num_trig;
 
 	    ofile << std::setw(3) << left << VMM;
@@ -157,6 +173,8 @@ int main(int argc, char* argv[]) {
 	    ofile << std::setw(6) << left << TDO;
 	    ofile << std::setw(6) << left << bcid_int;
 	    ofile << std::setw(5) << left << MMFE8;
+	    ofile << std::setw(6) << left << bcid_trig;
+	    ofile << std::setw(3) << left << ph_trig;
 	    ofile << std::setw(4) << left << fifocount/2;
 	    ofile << endl;
 	  }
