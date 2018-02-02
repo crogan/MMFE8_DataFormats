@@ -4,6 +4,7 @@
 #include <sstream>
 #include <iomanip>
 #include <stdio.h>
+#include <stdlib.h>
 #include <dirent.h>
 #include <ctime>
 #include <bitset>
@@ -69,6 +70,7 @@ int main(int argc, char* argv[]) {
   long num_trig_new = -1;
   long bcid_trig;
   long bcid_trig_new = -1;
+      bool new_event = false;
 
   // Loop through the entire input file
   if(ifile.is_open()){
@@ -95,32 +97,44 @@ int main(int argc, char* argv[]) {
       int TDO;
       int PDO;
 
+
       // Read line into buffer
       char sline[1000];
       sprintf(sline,"%s",line.c_str());
       // Break up line by spaces
       char* p = strtok(sline, " ");
       int itok = 0;
+      //std::cout << p << std::endl;
       while(p){
 
 	if(itok == 0){
 	  std::stringstream sfifo;
+      std::string head;
 	  sfifo << p;
-	  sfifo >> MMFE8;
-	  float mt;
-	  sfifo >> machinetime;
-	  sfifo >> mt;
-	  sfifo >> fifocount;
-	  sfifo >> cycle;
-	  sfifo >> std::hex >> fifotrig;
-	  num_trig_new = fifotrig & 65535;
-	  fifotrig = fifotrig >> 16;
-      ph_trig = fifotrig & 7;
-      fifotrig = fifotrig >> 4;
-	  bcid_trig_new = fifotrig & 4095;
-      if (num_trig_new != num_trig){
-        num_trig = num_trig_new;
+      sfifo >> head;
+      //std::cout << head << std::endl;
+      if (head == "new"){
+        new_event = true;
+      	p = strtok(NULL, " ");
+        continue;
       }
+      else{
+        MMFE8 = atoi(head.c_str());
+        //sfifo >> MMFE8;
+        float mt;
+        sfifo >> machinetime;
+        sfifo >> mt;
+        sfifo >> fifocount;
+        sfifo >> cycle;
+        sfifo >> std::hex >> fifotrig;
+        num_trig_new = fifotrig & 65535;
+        fifotrig = fifotrig >> 16;
+        ph_trig = fifotrig & 7;
+        fifotrig = fifotrig >> 4;
+        bcid_trig_new = fifotrig & 4095;
+        if (num_trig_new != num_trig){
+          num_trig = num_trig_new;
+        }
       // if (num_trig_new != num_trig && (MMFE8 != 122 && MMFE8 != 126 && MMFE8 != 106 && MMFE8 != 124 && MMFE8 != 119)){
       //   num_trig = num_trig_new;
       // }
@@ -128,6 +142,7 @@ int main(int argc, char* argv[]) {
       //   num_trig = num_trig_new;
       // }
       bcid_trig = bcid_trig_new;
+      }
 	}
 
 	if(itok > 1){
@@ -157,15 +172,19 @@ int main(int argc, char* argv[]) {
 	    bcid_gray = iword1 & 4095;
 	    bcid_int = gray_to_int(bcid_gray);
 
-	    if(num_trig != eventnum){
-          ofile << "EventNum " << num_trig + pow(2,16)*cycle;
+	    if(new_event){
+          //if(num_trig != eventnum){
+          eventnum++;
+          ofile << "EventNum " << eventnum;
+          //ofile << "EventNum " << num_trig + pow(2,16)*cycle;
 	      ofile << " Sec " << machinetime/billion;
 	      ofile << " NS " << machinetime%billion;
 	      //ofile << " BCIDtrig " << bcid_trig;
 	      ofile << endl;
+          new_event = false;
 	    }
           
-	    eventnum = num_trig;
+	    //eventnum = num_trig;
 
 	    ofile << std::setw(3) << left << VMM;
 	    ofile << std::setw(4) << left << CH;
