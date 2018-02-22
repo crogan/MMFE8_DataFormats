@@ -56,6 +56,7 @@ int main(int argc, char* argv[]) {
   TFile* fout = new TFile(outputFileName, "RECREATE");
   TTree* tree = new TTree("GBT_data","GBT_data");
 
+  int NhitsperADDCperBC = 8;
   int Nb = 8;
   int Nbuff = 30; // length of GBT buffer sent per trigger
 
@@ -148,6 +149,7 @@ int main(int argc, char* argv[]) {
             TPbcid = bcid;
         sline2 >> dum;
         sline2 >> nhits;
+        nhits = min(nhits, NhitsperADDCperBC);
         if (Aflag)
           nhitscycle = nhits;
         else
