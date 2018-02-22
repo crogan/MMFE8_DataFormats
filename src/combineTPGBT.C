@@ -3,7 +3,7 @@ Program in C to combine TPFit data and GBT data into one file based on the BCIDS
 attempting to steer by TPFit
 Original program started on June 19th, 2017
 Written by Joseph Farah on August 9th, 2017
-Last updated by [Joseph Farah] on: [August 11, 2017]
+Last updated by [Joseph Farah] on: [September 23th, 2017]
 
 Notes
 - Using TTree clone instead of steering by either file
@@ -160,6 +160,9 @@ int main( int argc, char *argv[] )  {
     /* clone the TPfit tree */
     TTree *combdata = tpfit_tree_old->CloneTree(0);
 
+    /* Rename the tpfit clone so that downstream packages can recognize it*/
+    combdata->SetName("TPcomb_data");
+
 
     /* check to make sure all appropriate TTrees exist */
     if (!gbt_tree) {
@@ -306,7 +309,7 @@ int main( int argc, char *argv[] )  {
         t_tpfit_BCID->clear();
 
         /* remove time break if iterating over entire dataset */
-        if(tpfittime > 1495040000) { break; }
+        // if(tpfittime > 1495040000) { break; }
 
         /* bootstrapping, part 1 */
         j = currifitpk;
