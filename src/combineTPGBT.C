@@ -72,6 +72,7 @@ int get_board_configuration(const char* rnum) {
     else if(run_num_int >= 3518 && run_num_int <=3523) { boards = {105, 117, 107, 106, 119, 102, 116, 118}; }
     else if(run_num_int == 3524)                       { boards = {105, 101, 107, 106, 119, 102, 116, 118}; }
     else if(run_num_int == 3525)                       { boards = {105, 101, 107, 106, 119, 120, 116, 118}; }
+    else if(run_num_int >= 3540)                       { boards = {123, 125, 109, 106, 126, 122, 124, 119}; }
     else { std::cout << "ERROR: Board configuration unknown for run number " << run_num_int << std::endl; success = 0;}
     return success;
 }
