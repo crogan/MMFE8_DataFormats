@@ -65,12 +65,14 @@ int main(int argc, char* argv[]) {
 
   vector<int> boardOrder = {2,4,3,5,1,0,6,7};
   vector<int> MMFE8Order;
+  vector<int> MMFE8Order_3540 = {119,124,122,126,106,109,125,123};
   vector<int> MMFE8Order_3525 = {118,111,120,119,106,107,101,105};
   vector<int> MMFE8Order_3524 = {118,116,102,119,106,107,101,105};
   vector<int> MMFE8Order_3518 = {118,116,102,119,106,107,117,105};
-  if (RunNum >= 3525){
+  if (RunNum >= 3540)
+    MMFE8Order = MMFE8Order_3540;
+  else if (RunNum >= 3525)
     MMFE8Order = MMFE8Order_3525;
-  }
   else if (RunNum >= 3524)
     MMFE8Order = MMFE8Order_3524;
   else if (RunNum >= 3518)
