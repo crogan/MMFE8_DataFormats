@@ -65,7 +65,6 @@ int sci_Time_nsec;
 int mm_EventNum;
 int mm_Time_sec;
 int mm_Time_nsec;
-int mm_trig_BCID;
 int tp_EventNum;
 int tp_Time_sec;
 int tp_Time_nsec;
@@ -82,6 +81,8 @@ vector<int> mm_PDO;
 vector<int> mm_TDO;
 vector<int> mm_BCID;
 vector<int> mm_MMFE8;
+vector<int> mm_trigBCID;
+vector<int> mm_trigphase;
 vector<int> mm_FIFOcount;
 
 int N_tp;
@@ -235,33 +236,37 @@ int main(int argc, char* argv[]) {
   bool tpmatch = false;
   double mmdiff = -999.;
   double tpdiff = -999.;
+
   if (!(g_troot || g_tdat)) {
-    while(bgood && !(g_troot || g_tdat)){
-      mmdiff = -((mm_Time_sec+mm_Time_nsec/pow(10,9))-(sci_Time_sec + sci_Time_nsec/pow(10,9)));
-      if(sci_EventNum == mm_EventNum + g_offset && mmdiff < 1.5){
+    while(bgood){
+
+      mmdiff = (sci_Time_sec + sci_Time_nsec/pow(10,9)) - (mm_Time_sec+mm_Time_nsec/pow(10,9));
+
+      if(mmdiff > -0.1 && mmdiff < 0.5){
         WriteEvent();
         if(!NextMMEvent())
   	     bgood = false;
-      } 
-      else {
-        if(sci_EventNum > mm_EventNum + g_offset){
-          if(!NextMMEvent())
-            bgood = false;
-        } 
-        else if(sci_EventNum == mm_EventNum + g_offset && mmdiff > 1.5){
-          cout << endl;
-          cout << "Extra MM event @ " << mm_EventNum << endl;
-          cout << "Scintillator @ " << sci_EventNum << endl;
-          cout << endl;
-          g_offset--;
-          if(!NextMMEvent())
-            bgood = false;
-        } 
-        else {
-  	     if(!NextSCINTEvent())
-  	       bgood = false;
-        }
+        if(!NextSCINTEvent())
+  	     bgood = false;
       }
+      else if (mmdiff > 0.5){
+        cout << endl;
+        cout << "Extra MM event @ " << mm_EventNum  << endl;
+        cout << "Scintillator   @ " << sci_EventNum << endl;
+        cout << endl;
+        if(!NextMMEvent())
+  	     bgood = false;
+      }
+      else if (mmdiff < -0.1){
+        //cout << endl;
+        //cout << "Extra SC event @ " << sci_EventNum << endl;
+        //cout << "Micromegas     @ " << mm_EventNum  << endl;
+        //cout << endl;
+        if(!NextSCINTEvent())
+  	     bgood = false;
+      }
+      else
+        cout << "There is bad logic here! This statement shouldnt happen." << endl;
     }
   }
   else {
@@ -421,7 +426,6 @@ bool Initialize_output(const string& filename){
   output_tree->Branch("mm_EventNum", &mm_EventNum);
   output_tree->Branch("mm_Time_sec", &mm_Time_sec);
   output_tree->Branch("mm_Time_nsec", &mm_Time_nsec);
-  output_tree->Branch("mm_trig_BCID", &mm_trig_BCID);
   
   output_tree->Branch("N_sci", &N_sci);
   output_tree->Branch("sci_CH", &sci_CH);
@@ -434,6 +438,8 @@ bool Initialize_output(const string& filename){
   output_tree->Branch("mm_TDO", &mm_TDO);
   output_tree->Branch("mm_BCID", &mm_BCID);
   output_tree->Branch("mm_MMFE8", &mm_MMFE8);
+  output_tree->Branch("mm_trigBCID", &mm_trigBCID);
+  output_tree->Branch("mm_trigphase", &mm_trigphase);
   output_tree->Branch("mm_FIFOcount", &mm_FIFOcount);
 
   if (g_tdat || g_troot) {
@@ -470,8 +476,6 @@ bool NextMMEvent(){
     sline >> mm_Time_sec;
     sline >> dum;
     sline >> mm_Time_nsec;
-    sline >> dum;
-    sline >> mm_trig_BCID;
     
     N_mm = 0;
     mm_VMM.clear();
@@ -480,6 +484,8 @@ bool NextMMEvent(){
     mm_TDO.clear();
     mm_BCID.clear();
     mm_MMFE8.clear();
+    mm_trigBCID.clear();
+    mm_trigphase.clear();
     mm_FIFOcount.clear();
 
     int VMM;
@@ -488,6 +494,8 @@ bool NextMMEvent(){
     int TDO;
     int BCID;
     int MMFE8;
+    int trigBCID;
+    int trigphase;
     int FIFOcount;
 
     while(true){
@@ -508,6 +516,8 @@ bool NextMMEvent(){
       mline >> TDO;
       mline >> BCID;
       mline >> MMFE8;
+      mline >> trigBCID;
+      mline >> trigphase;
       mline >> FIFOcount;
       N_mm++;
       
@@ -517,6 +527,8 @@ bool NextMMEvent(){
       mm_TDO.push_back(TDO);
       mm_BCID.push_back(BCID);
       mm_MMFE8.push_back(MMFE8);
+      mm_trigBCID.push_back(trigBCID);
+      mm_trigphase.push_back(trigphase);
       mm_FIFOcount.push_back(FIFOcount);
     }
   }
@@ -530,7 +542,6 @@ bool NextMMEvent(){
     mm_EventNum = g_MMbase->EventNum;
     mm_Time_sec = g_MMbase->Time_sec;
     mm_Time_nsec = g_MMbase->Time_nsec;
-    mm_trig_BCID = g_MMbase->trig_BCID;
 
     N_mm = g_MMbase->N_mm;
     mm_VMM.clear();
