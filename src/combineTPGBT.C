@@ -92,6 +92,8 @@ int main( int argc, char *argv[] )  {
 
     int limit           = -1;
     int offset_BCID     = 0;
+    int BCID_mod        = 0;
+    int BCID_max        = 4096;
 
     /* argument stuff */
     if(argc != 13 && argc != 11 && argc != 9) {
@@ -364,8 +366,18 @@ int main( int argc, char *argv[] )  {
 
             /* if the time difference is acceptable, begin packet comparison */
             if(time_difference < 0.2) {
+
+                /* in case the user wants to adjust the FIT BCID, which is cyclical */
+                if (offset_BCID){
+                    BCID_mod = BCID + offset_BCID;
+                    if      (BCID_mod < 0)        BCID_mod = BCID_mod + BCID_max;
+                    else if (BCID_mod > BCID_max) BCID_mod = BCID_mod - BCID_max;
+                }
+                else
+                    BCID_mod = BCID;
+
                 /* check if the trigger processor output is in the GBT packets */
-                if(std::find(gbtbcids.begin(), gbtbcids.end(), BCID + offset_BCID) != gbtbcids.end()) {
+                if(std::find(gbtbcids.begin(), gbtbcids.end(), BCID_mod) != gbtbcids.end()) {
 
                     for(unsigned int counter2 = 0; counter2 < tpfit_MMFE8->size(); counter2++) {
                         tp_tmp_hit_storage.clear();
