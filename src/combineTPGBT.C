@@ -88,39 +88,26 @@ int main( int argc, char *argv[] )  {
     char *tmp3 = 0;
     char *tmp4 = 0;
     char *tmp5 = 0;
+    char *tmp6 = 0;
 
-    int has_limit       = 0;
-    int limit           = 0;
-    int check_for_limit = 0;
+    int limit           = -1;
+    int offset_BCID     = 0;
 
     /* argument stuff */
-    if(argc != 11 && argc != 9) {
+    if(argc != 13 && argc != 11 && argc != 9) {
         std::cout << "ERROR: not enough or invalid arguments, please try again." << std::endl;
         std::cout << "Example syntax: ./combineTPGBT -g Run3522_GBT_decoded.root -t Run3522_FIT_decoded.root -o combined.root -r 3522" << std::endl;
         return 0;
     }
 
     /* go through all arguments and examine relevant args, adjust settings accordingly */
-    if(argc==11) { check_for_limit = 1; }
     for(int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "-g") == 0) { tmp1 = argv[i+1]; i++; }
+        if      (strcmp(argv[i], "-g") == 0) { tmp1 = argv[i+1]; i++; }
         else if (strcmp(argv[i], "-t") == 0) { tmp2 = argv[i+1]; i++; }
         else if (strcmp(argv[i], "-o") == 0) { tmp3 = argv[i+1]; i++; }
         else if (strcmp(argv[i], "-r") == 0) { tmp4 = argv[i+1]; i++; }
-        else {
-            if(check_for_limit == 1) {
-                if(strcmp(argv[i], "-l") == 0) {
-                    has_limit = 1;
-                    tmp5 = argv[i+1];
-                }
-            }
-            else {
-                std::cout << "This argument caused an error: " << argv[i] << std::endl;
-                std::cout << "Not enough or invalid arguments, please try again.\n";
-                std::cout << "Example syntax: ./combineTPGBT -g Run3522_GBT_decoded.root -t Run3522_FIT_decoded.root -o combined.root -r 3522 -l 0" << std::endl;
-                return 0;
-            }
-        }
+        else if (strcmp(argv[i], "-l") == 0) { tmp5 = argv[i+1]; i++; }
+        else if (strcmp(argv[i], "-b") == 0) { tmp6 = argv[i+1]; i++; }
     }
 
     /* ROOT needs const chars as file names */
@@ -130,9 +117,15 @@ int main( int argc, char *argv[] )  {
     const char* run_num = tmp4;
 
     /* tmp5 will only have a value if limit was defined as existing */
-    if (has_limit != 0) {
+    if (tmp5) {
         limit = std::stoi(tmp5);
         std::cout << "The program will cease after this TPFIT entry: " << limit << std::endl;
+    }
+
+    /* tmp6 will only have a value if the -b argument was supplied */
+    if (tmp6){
+        offset_BCID = std::stoi(tmp6);
+        std::cout << "The program will offset the TPFIT BCID relative to the GBT BCID by: " << offset_BCID << std::endl;
     }
 
     /* print out provided file arguments */
@@ -298,7 +291,7 @@ int main( int argc, char *argv[] )  {
     while(tpfit_tree_old->GetEntry(i)) {
 
         /* change stuff here if you don't want the program to break */
-        if(has_limit != 0 && i >= limit) { break; }
+        if(limit != -1 && i >= limit) { break; }
 
         /* grab tpfittime */
         tpfittime = tpTime_sec + tpTime_nsec/pow(10.,9);
@@ -372,8 +365,8 @@ int main( int argc, char *argv[] )  {
             /* if the time difference is acceptable, begin packet comparison */
             if(time_difference < 0.2) {
                 /* check if the trigger processor output is in the GBT packets */
-                if(std::find(gbtbcids.begin(), gbtbcids.end(), BCID) != gbtbcids.end()) {
-                    
+                if(std::find(gbtbcids.begin(), gbtbcids.end(), BCID + offset_BCID) != gbtbcids.end()) {
+
                     for(unsigned int counter2 = 0; counter2 < tpfit_MMFE8->size(); counter2++) {
                         tp_tmp_hit_storage.clear();
                         tp_tmp_hit_storage.push_back(tpfit_MMFE8->at(counter2));
