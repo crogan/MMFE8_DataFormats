@@ -121,6 +121,10 @@ int main( int argc, char *argv[] )  {
     /* tmp5 will only have a value if limit was defined as existing */
     if (tmp5) {
         limit = std::stoi(tmp5);
+        if (limit < 0){
+          std::cout << "ERROR: This value of limit does not make sense: " << limit << std::endl;
+          return 0;
+        }
         std::cout << "The program will cease after this TPFIT entry: " << limit << std::endl;
     }
 
