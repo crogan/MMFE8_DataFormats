@@ -14,7 +14,7 @@ import time
 import ROOT
 
 ints    = ["tp_n"]
-vecints = ["tp_EventNum", "tp_cntr", "tp_Time_sec", "tp_Time_nsec", "tp_BCID", "tp_hit_n"]
+vecints = ["tp_EventNum", "tp_EventNumGBT", "tp_cntr", "tp_Time_sec", "tp_Time_nsec", "tp_BCID", "tp_hit_n"]
 vecdubs = ["tp_mxlocal"]
 vecvecs = ["tp_hit_MMFE8", "tp_hit_VMM", "tp_hit_CH", "tp_hit_BCID"]
 
@@ -159,6 +159,7 @@ def main():
                 nMMtrigs += 1
                 treedict["tp_n"][0] += 1
                 treedict["tp_EventNum"]    .push_back(trTP.EventNum)
+                treedict["tp_EventNumGBT"] .push_back(trTP.EventNumGBT)
                 treedict["tp_cntr"]        .push_back(trTP.cntr)
                 treedict["tp_Time_sec"]    .push_back(trTP.Time_sec)
                 treedict["tp_Time_nsec"]   .push_back(trTP.Time_nsec)
