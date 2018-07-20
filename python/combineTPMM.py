@@ -14,12 +14,14 @@ import time
 import ROOT
 
 ints    = ["tp_n"]
-vecints = ["tp_EventNum", "tp_EventNumGBT", "tp_cntr", "tp_Time_sec", "tp_Time_nsec", "tp_BCID", "tp_hit_n"]
+vecints = ["tp_EventNum", "tp_EventNumGBT", "tp_cntr", "tp_Time_sec", "tp_Time_nsec", "tp_BCID", "tp_hit_n", "tp_BCID_L0"]
 vecdubs = ["tp_mxlocal"]
 vecvecs = ["tp_hit_MMFE8", "tp_hit_VMM", "tp_hit_CH", "tp_hit_BCID"]
 
-deltat_min = -0.01
-deltat_max = 0.06
+deltat_min = -1
+deltat_max = 1
+
+ignoreMMFE8 = [6, 7, 8, 9]
 
 def main():
 
@@ -33,10 +35,10 @@ def main():
     fMM = ROOT.TFile.Open(fMM)
 
     trTP = fTP.Get("TPfit_data") or fTP.Get("TPcomb_data")
-    trMM = fMM.Get("MM_data")    or fMM.Get("COMB_data")
+    trMM = fMM.Get("vmm")
 
     if not trTP: fatal("Couldnt find TTree (TPfit_data or TPcomb_data) within %s" % (ops.tp))
-    if not trMM: fatal("Couldnt find TTree (MM_data or COMB_data) within %s"      % (ops.mm))
+    if not trMM: fatal("Couldnt find TTree (vmm) within %s"                       % (ops.mm))
 
     # assess what inputs were dealing with
     combMM = "comb" in trMM.GetName().lower()
@@ -92,14 +94,28 @@ def main():
         _ = trMM.GetEntry(entMM)
         if entMM % 100 == 0 and entMM > 0:
             progress(time.time() - start_time, entMM, entsMM)
-        evMM = trMM.mm_EventNum if combMM else trMM.EventNum
+        evMM = trMM.triggerCounter[0]
 
         # clear the TP branches
         reset(treedict)
 
         # gather time and hits
-        tMM = (trMM.mm_Time_sec + trMM.mm_Time_nsec/pow(10, 9.0)) if combMM else (trMM.Time_sec + trMM.Time_nsec/pow(10, 9.0))
-        hits_mm = zip(list(trMM.mm_MMFE8), list(trMM.mm_VMM), list(trMM.mm_CH))
+        tMM = (trMM.daq_timestamp_s[0] + trMM.daq_timestamp_ns[0]/pow(10, 9.0))
+        hits_mm = []
+        mm_chip    = list(trMM.chip)
+        mm_boardId = list(trMM.boardId)
+        mm_channel = list(trMM.channel)
+        mm_channel = [list(ch) for ch in mm_channel]
+        mm_bcidL0  = list(trMM.bcid)
+        mm_bcidL0  = [list(bc) for bc in mm_bcidL0]
+        mm_relbcid = list(trMM.relbcid)
+        mm_relbcid = [list(bc) for bc in mm_relbcid]
+        for (chs, vmm, mmfe, bcL0s, relbcs) in zip(mm_channel, mm_chip, mm_boardId, mm_bcidL0, mm_relbcid):
+            if mmfe in ignoreMMFE8:
+                continue
+            for (ch, bcL0, relbc) in zip(chs, bcL0s, relbcs):
+                hits_mm.append( (mmfe, vmm, ch) )
+
         verbose("Event %i :: %i hits" % (entMM, len(hits_mm)))
 
         # triggerable?
@@ -129,7 +145,7 @@ def main():
             # at the end!
             if entTP == entsTP-1:
                 verbose(color.RED + debug + (" No more triggers! Resetting to TP = %s " % (entTP_prev)) + color.END)
-                entTP = entTP_prev
+                entTP = entTP_prev - 500 # this was not derived scientifically
                 break
 
             # too soon
@@ -141,6 +157,7 @@ def main():
             # passed it
             if deltat > deltat_max:
                 verbose(color.GRAY + debug + (" Passed the time window. Next MM event.") + color.END)
+                entTP = entTP_prev - 500 # this was not derived scientifically
                 break
 
             # evaluate goodness of matching
@@ -149,7 +166,7 @@ def main():
             debug += "nhits = %s  nshar = %s " % (len(hits_tp), nshared)
 
             # accept everything in the time window
-            if nshared >= 0:
+            if nshared >= 3:
                 verbose(color.GREEN + debug + " Found matching trigger. " + color.END)
                 if nshared == len(hits_tp)-1 and all_shared:
                     all_shared = False
@@ -164,6 +181,7 @@ def main():
                 treedict["tp_Time_sec"]    .push_back(trTP.Time_sec)
                 treedict["tp_Time_nsec"]   .push_back(trTP.Time_nsec)
                 treedict["tp_BCID"]        .push_back(trTP.BCID)
+                treedict["tp_BCID_L0"]     .push_back(mm_bcidL0[0][0])
                 treedict["tp_mxlocal"]     .push_back(trTP.mxlocal)
                 treedict["tp_hit_n"]       .push_back(trTP.tpfit_n)
                 treedict["tp_hit_MMFE8"]   .push_back(copy.deepcopy(trTP.tpfit_MMFE8))
@@ -193,7 +211,10 @@ def main():
     print "Found %i MM events" % (entsMM)
     print "Found %i MM events, triggerable" % (nMMcands)
     print "Found %i MM events with a matched trigger" % (nMMmatch)
-    print " %4.2f triggers per matched MM"     % (float(nMMtrigs) / float(nMMmatch))
+    try:
+        print " %4.2f triggers per matched MM"     % (float(nMMtrigs) / float(nMMmatch))
+    except ZeroDivisionError:
+        pass
     print "Found %i MM events with a matched trigger where at least 1 trigger has a made up hit" % (nNotShared)
     print
     print "Done! >^.^<"
