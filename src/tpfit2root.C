@@ -65,12 +65,15 @@ int main(int argc, char* argv[]) {
   float mxlocal;
 
   vector<int> MMFE8Order;
+  vector<int> MMFE8Order_9999 = {005,004,003,002,000,000,000,000};
   vector<int> MMFE8Order_3540 = {119,124,122,126,106,109,125,123};
   vector<int> MMFE8Order_3525 = {118,111,120,119,106,107,101,105};
   vector<int> MMFE8Order_3524 = {118,116,102,119,106,107,101,105};
   vector<int> MMFE8Order_3518 = {118,116,102,119,106,107,117,105};
   vector<int> boardOrder = {5, 3, 4, 2, 7, 6, 1, 0};
-  if (RunNum >= 3540)
+  if (RunNum >= 9999)
+    MMFE8Order = MMFE8Order_9999;
+  else if (RunNum >= 3540)
     MMFE8Order = MMFE8Order_3540;
   else if (RunNum >= 3525)
     MMFE8Order = MMFE8Order_3525;
